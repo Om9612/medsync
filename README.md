@@ -1,6 +1,17 @@
-# 💊 MedSync — Smart Medicine Reminder App
+<div align="center">
 
-> A full-stack medicine reminder application built with **Node.js + Express + TypeScript** on the backend and **HTML + CSS + TypeScript** on the frontend. Get browser notifications and audio alarms at the exact time your medicine is due.
+# 💊 MedSync
+
+### Smart Medicine Reminder App
+
+**Never miss a dose again.** MedSync is a full-stack web application that helps you manage daily medicines with scheduled reminders, browser notifications, audio alarms, dose history tracking, and a secure user authentication system.
+
+[![Node.js](https://img.shields.io/badge/Node.js-v18+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Express](https://img.shields.io/badge/Express-5.x-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+
+</div>
 
 ---
 
@@ -10,33 +21,60 @@
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
 - [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
+- [Installation & Setup](#-installation--setup)
 - [Running the App](#-running-the-app)
+- [Authentication Flow](#-authentication-flow)
 - [API Reference](#-api-reference)
+- [Pages & UI](#-pages--ui)
 - [Environment Variables](#-environment-variables)
 - [Common Errors & Fixes](#-common-errors--fixes)
 - [Deployment](#-deployment)
 - [Upgrading to MongoDB](#-upgrading-to-mongodb)
-- [Screenshots](#-screenshots)
+- [Contributing](#-contributing)
 - [License](#-license)
 
 ---
 
 ## ✨ Features
 
-| Feature | Description |
+### 🔐 Authentication
+
+| Feature | Details |
 |---|---|
-| ➕ Add Medicine | Name, dosage, emoji icon, colour theme, notes |
-| ⏰ Multiple Reminders | Set several daily times per medicine (e.g. 8 AM and 8 PM) |
-| ✅ Mark as Taken | Track individual dose slots, card turns green when all done |
-| 🔔 Browser Notifications | Native push alerts at scheduled times |
-| 🔊 Audio Alarm | Web Audio API beep when it is time for a dose |
-| 📜 History Log | Full record of every dose with Taken / Missed status |
-| 🔍 History Filters | Filter by All / Taken / Missed / Today |
-| 🔥 Streak Tracking | Consecutive days taken counter per medicine |
-| 📊 Dashboard Stats | Total medicines, taken today, pending, best streak |
-| ✏️ Edit & Delete | Full CRUD — soft delete preserves history |
-| 💾 JSON Database | Zero-config file-based storage, swap to MongoDB later |
+| User Registration | Name, email, password with real-time strength meter |
+| Secure Login | bcrypt password hashing + JWT sessions (7-day expiry) |
+| Protected Routes | All dashboard data requires a valid JWT token |
+| Auto Redirect | Unauthenticated users redirected to login instantly |
+| Session Persistence | Token stored in `localStorage`, verified on every load |
+| Sign Out | Clears token and session, returns to login page |
+
+### 💊 Medicine Management
+
+| Feature | Details |
+|---|---|
+| Add Medicine | Name, dosage, emoji icon (16 options), colour theme (8 options), notes |
+| Multiple Times | Set several daily reminder times per medicine |
+| Edit Medicine | Update any field at any time |
+| Soft Delete | Removes from dashboard while preserving history |
+| Streak Tracking | Consecutive days taken counter per medicine |
+
+### ⏰ Reminders & Notifications
+
+| Feature | Details |
+|---|---|
+| Browser Notifications | Native push alerts at the exact scheduled time |
+| Audio Alarm | Web Audio API triple-beep when dose is due |
+| Alarm Checker | Polls every 30 seconds, works across browser tabs |
+| Mark as Taken | One click records dose with timestamp |
+
+### 📊 Dashboard & History
+
+| Feature | Details |
+|---|---|
+| Stats Cards | Total medicines, taken today, pending, best streak |
+| Medicine Cards | Visual cards with colour themes, time chips, streak counter |
+| Dose History | Full log of every dose taken across all medicines |
+| History Filters | Filter by All / Taken / Missed / Today |
 
 ---
 
@@ -46,15 +84,16 @@
 - **Runtime** — Node.js v18+
 - **Framework** — Express.js v5
 - **Language** — TypeScript
-- **Database** — JSON file (`data/db.json`) → MongoDB-ready
-- **Key packages** — `uuid`, `cors`, `dotenv`
+- **Auth** — JSON Web Tokens (`jsonwebtoken`) + bcrypt (`bcryptjs`)
+- **Database** — JSON file `data/db.json` (MongoDB-ready)
+- **Other** — `uuid`, `cors`, `dotenv`
 
 ### Frontend
 - **Markup** — HTML5
-- **Styles** — CSS3 (custom properties, grid, flexbox, animations)
-- **Logic** — TypeScript (compiled to JS)
-- **Fonts** — Syne + DM Sans (Google Fonts)
-- **Notifications** — Web Notification API + Web Audio API
+- **Styles** — CSS3 (custom properties, grid, flexbox, keyframe animations)
+- **Logic** — Vanilla TypeScript compiled to JS
+- **Fonts** — Syne (headings) + DM Sans (body) via Google Fonts
+- **Browser APIs** — Web Notification API, Web Audio API
 
 ---
 
@@ -62,25 +101,41 @@
 
 ```
 medsync/
-├── src/                          # Backend TypeScript source
-│   ├── server.ts                 # Express app entry point
+│
+├── src/                              # Backend TypeScript source
+│   ├── server.ts                     # Express app entry point
+│   │
 │   ├── types/
-│   │   └── index.ts              # Shared TypeScript interfaces
+│   │   └── index.ts                  # All shared TypeScript interfaces
+│   │
 │   ├── db/
-│   │   └── database.ts           # JSON read/write layer
+│   │   └── database.ts               # JSON read/write layer
+│   │
+│   ├── middleware/
+│   │   └── auth.middleware.ts        # JWT verification middleware
+│   │
 │   ├── routes/
-│   │   ├── medicine.routes.ts    # /api/medicines router
-│   │   └── history.routes.ts     # /api/history router
+│   │   ├── auth.routes.ts            # /api/auth/*
+│   │   ├── medicine.routes.ts        # /api/medicines/*
+│   │   └── history.routes.ts         # /api/history/*
+│   │
 │   └── controllers/
-│       ├── medicine.controller.ts
-│       └── history.controller.ts
-├── public/                       # Frontend static files
-│   └── index.html                # Complete single-file frontend
+│       ├── auth.controller.ts        # register · login · getMe
+│       ├── medicine.controller.ts    # CRUD + mark taken
+│       └── history.controller.ts    # list + filter history
+│
+├── public/                           # Frontend static files
+│   ├── login.html                    # Login / Sign-up page
+│   └── index.html                    # Main dashboard app
+│
 ├── data/
-│   └── db.json                   # JSON database (auto-created)
-├── dist/                         # Compiled JS output (auto-generated)
-├── .env                          # Environment variables
-├── tsconfig.json                 # TypeScript configuration
+│   └── db.json                       # JSON database (auto-created)
+│
+├── dist/                             # Compiled JS output (auto-generated)
+│
+├── .env                              # Environment variables
+├── .gitignore
+├── tsconfig.json
 ├── package.json
 └── README.md
 ```
@@ -89,22 +144,20 @@ medsync/
 
 ## ✅ Prerequisites
 
-Make sure you have these installed before starting:
-
-| Tool | Version | Check |
+| Tool | Min Version | Check command |
 |---|---|---|
-| Node.js | v18 or higher | `node --version` |
-| npm | v9 or higher | `npm --version` |
+| Node.js | v18.0.0 | `node --version` |
+| npm | v9.0.0 | `npm --version` |
 | Git | Any | `git --version` |
 
 ---
 
-## 🚀 Installation
+## 🚀 Installation & Setup
 
 ### Step 1 — Clone or create the project
 
 ```bash
-# Clone from GitHub (if hosted)
+# Clone from GitHub
 git clone https://github.com/your-username/medsync.git
 cd medsync
 
@@ -113,61 +166,30 @@ mkdir medsync && cd medsync
 npm init -y
 ```
 
-### Step 2 — Install dependencies
+### Step 2 — Install all dependencies
 
 ```bash
-# Production dependencies
-npm install express cors dotenv uuid
+# Core backend + auth packages
+npm install express cors dotenv uuid bcryptjs jsonwebtoken
 
-# Development dependencies
+# TypeScript + all type definitions
 npm install -D typescript ts-node nodemon \
-  @types/express @types/node @types/cors @types/uuid
+  @types/express @types/node @types/cors \
+  @types/uuid @types/bcryptjs @types/jsonwebtoken
 ```
 
-### Step 3 — Initialise TypeScript
+### Step 3 — Create folder structure
 
 ```bash
-npx tsc --init
+# Windows
+mkdir src src\controllers src\routes src\middleware src\db src\types
+mkdir public data
+
+# Mac / Linux
+mkdir -p src/{controllers,routes,middleware,db,types} public data
 ```
 
-### Step 4 — Create required folders
-
-```bash
-mkdir src public data
-mkdir src/routes src/controllers src/db src/types
-```
-
-### Step 5 — Create the `.env` file
-
-```bash
-# Create .env in the project root
-echo PORT=3000 > .env
-echo NODE_ENV=development >> .env
-```
-
-### Step 6 — Create the database file
-
-```bash
-echo {"medicines":[],"history":[]} > data/db.json
-```
-
-### Step 7 — Configure `package.json` scripts
-
-Open `package.json` and update the `scripts` section:
-
-```json
-{
-  "scripts": {
-    "dev":   "nodemon --exec ts-node src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
-  }
-}
-```
-
-### Step 8 — Configure `tsconfig.json`
-
-Replace the contents of `tsconfig.json` with:
+### Step 4 — Create `tsconfig.json`
 
 ```json
 {
@@ -187,6 +209,47 @@ Replace the contents of `tsconfig.json` with:
 }
 ```
 
+### Step 5 — Create `.env` file
+
+```env
+PORT=3000
+NODE_ENV=development
+JWT_SECRET=medsync_super_secret_key_change_this_in_production
+```
+
+> ⚠️ **Never commit `.env` to Git.** Always add it to `.gitignore`.
+
+### Step 6 — Create `data/db.json`
+
+```bash
+# Windows
+echo {"medicines":[],"history":[],"users":[]} > data\db.json
+
+# Mac / Linux
+echo '{"medicines":[],"history":[],"users":[]}' > data/db.json
+```
+
+### Step 7 — Update `package.json` scripts
+
+```json
+{
+  "scripts": {
+    "dev":   "nodemon --exec ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  }
+}
+```
+
+### Step 8 — Create `.gitignore`
+
+```
+node_modules/
+dist/
+.env
+data/db.json
+```
+
 ---
 
 ## ▶️ Running the App
@@ -197,182 +260,344 @@ Replace the contents of `tsconfig.json` with:
 npm run dev
 ```
 
-You should see:
+You should see this in the terminal:
 
 ```
-MedSync running → http://localhost:3000
+✅ MedSync running → http://localhost:3000
+   Auth API       → http://localhost:3000/api/auth
 ```
 
 ### Production mode
 
 ```bash
-# Compile TypeScript to JavaScript
-npm run build
-
-# Start compiled server
-npm start
+npm run build    # Compile TypeScript → dist/
+npm start        # Run compiled JavaScript
 ```
 
 ### Open in browser
 
+| URL | Description |
+|---|---|
+| `http://localhost:3000/login.html` | Login and sign-up page |
+| `http://localhost:3000/` | Dashboard (redirects to login if not authenticated) |
+| `http://localhost:3000/api/health` | Quick backend health check |
+| `http://localhost:3000/api/medicines` | Medicines JSON (requires token) |
+
+---
+
+## 🔐 Authentication Flow
+
 ```
-http://localhost:3000
+1. User visits /
+   └── Auth guard checks localStorage for JWT
+       ├── No token → redirect to /login.html
+       └── Token found → verify with GET /api/auth/me
+           ├── Invalid/expired → clear token → redirect to /login.html
+           └── Valid → load dashboard
+
+2. Register (POST /api/auth/register)
+   └── Validate name, email, password (min 6 chars)
+       └── Check for duplicate email in db.json
+           └── bcrypt.hash(password, 10)
+               └── Save user with UUID to db.json
+                   └── Sign JWT (7-day expiry)
+                       └── Return token + safe user (no passwordHash)
+                           └── Save to localStorage → redirect to dashboard
+
+3. Login (POST /api/auth/login)
+   └── Look up email in db.json
+       └── bcrypt.compare(password, hash)
+           ├── No match → 401 "Invalid email or password"
+           │   (same message for both cases — prevents email enumeration)
+           └── Match → sign JWT → return token → redirect to dashboard
+
+4. Every protected API call
+   └── Frontend sends: Authorization: Bearer <token>
+       └── requireAuth middleware verifies JWT
+           ├── Invalid/expired → 401 → frontend redirects to /login.html
+           └── Valid → attach decoded payload to req.user → next()
+
+5. Sign Out
+   └── localStorage.removeItem('ms_token')
+       └── Redirect to /login.html
 ```
 
 ---
 
 ## 📡 API Reference
 
-Base URL: `http://localhost:3000/api`
+**Base URL:** `http://localhost:3000/api`
 
-### Health Check
-
+Protected routes require the HTTP header:
 ```
-GET /health
-```
-
-Response:
-```json
-{ "status": "ok", "time": "2025-01-01T08:00:00.000Z" }
+Authorization: Bearer <your_jwt_token>
 ```
 
 ---
 
-### Medicines
+### Auth — `/api/auth`
 
-#### Get all medicines
-```
-GET /medicines
+#### POST `/api/auth/register`
+
+Register a new user account.
+
+Request body:
+```json
+{
+  "name":     "Ajay Kumar",
+  "email":    "ajay@example.com",
+  "password": "mypassword123"
+}
 ```
 
-Response:
+Success response `201`:
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": "uuid-here",
-      "name": "Metformin",
-      "dosage": "500mg",
-      "times": ["08:00", "20:00"],
-      "emoji": "💊",
-      "color": "rgba(0,229,255,0.12)",
-      "notes": "Take after meals",
-      "streak": 3,
-      "active": true,
-      "createdAt": "2025-01-01T00:00:00.000Z"
-    }
-  ]
+  "token":   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id":        "550e8400-e29b-41d4-a716-446655440000",
+    "name":      "Ajay Kumar",
+    "email":     "ajay@example.com",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
 }
 ```
 
-#### Add a medicine
+Error responses:
+```json
+{ "success": false, "error": "Name is required" }                         // 400
+{ "success": false, "error": "Valid email is required" }                  // 400
+{ "success": false, "error": "Password must be at least 6 characters" }  // 400
+{ "success": false, "error": "An account with this email already exists" } // 409
 ```
-POST /medicines
-Content-Type: application/json
-```
+
+---
+
+#### POST `/api/auth/login`
+
+Login with existing credentials.
 
 Request body:
 ```json
 {
-  "name": "Metformin",
-  "dosage": "500mg",
-  "times": ["08:00", "20:00"],
-  "emoji": "💊",
-  "color": "rgba(0,229,255,0.12)",
-  "notes": "Take after meals"
+  "email":    "ajay@example.com",
+  "password": "mypassword123"
 }
 ```
 
-#### Update a medicine
-```
-PUT /medicines/:id
-Content-Type: application/json
+Success response `200`: same shape as register response.
+
+Error response `401`:
+```json
+{ "success": false, "error": "Invalid email or password" }
 ```
 
-#### Delete a medicine (soft delete)
+---
+
+#### GET `/api/auth/me` *(protected)*
+
+Returns the currently authenticated user.
+
 ```
-DELETE /medicines/:id
+GET /api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-#### Mark a dose as taken
-```
-POST /medicines/:id/take
-Content-Type: application/json
+---
+
+### Medicines — `/api/medicines` *(all protected)*
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/medicines` | List all active medicines |
+| `POST` | `/api/medicines` | Add a new medicine |
+| `PUT` | `/api/medicines/:id` | Update a medicine |
+| `DELETE` | `/api/medicines/:id` | Soft-delete (sets `active: false`) |
+| `POST` | `/api/medicines/:id/take` | Record a dose as taken |
+
+#### Add medicine — request body
+
+```json
+{
+  "name":   "Metformin",
+  "dosage": "500mg",
+  "times":  ["08:00", "20:00"],
+  "emoji":  "💊",
+  "color":  "rgba(0,229,255,0.12)",
+  "notes":  "Take after meals"
+}
 ```
 
-Request body:
+#### Medicine object response
+
+```json
+{
+  "id":        "uuid",
+  "name":      "Metformin",
+  "dosage":    "500mg",
+  "times":     ["08:00", "20:00"],
+  "emoji":     "💊",
+  "color":     "rgba(0,229,255,0.12)",
+  "notes":     "Take after meals",
+  "streak":    3,
+  "active":    true,
+  "createdAt": "2025-01-01T00:00:00.000Z"
+}
+```
+
+#### Mark taken — request body
+
 ```json
 { "scheduledTime": "08:00" }
 ```
 
 ---
 
-### History
+### History — `/api/history` *(all protected)*
 
-#### Get full history
-```
-GET /history
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/history` | Full dose history |
+| `GET` | `/api/history?status=taken` | Only taken doses |
+| `GET` | `/api/history?status=missed` | Only missed doses |
+| `GET` | `/api/history?date=2025-01-01` | Doses for a specific date |
 
-#### Filter by status
-```
-GET /history?status=taken
-GET /history?status=missed
-```
+#### History entry object
 
-#### Filter by date
-```
-GET /history?date=2025-01-01
+```json
+{
+  "id":            "uuid",
+  "medicineId":    "medicine-uuid",
+  "medicineName":  "Metformin",
+  "emoji":         "💊",
+  "dose":          "500mg",
+  "scheduledTime": "08:00",
+  "takenAt":       "2025-01-01T08:03:22.000Z",
+  "status":        "taken"
+}
 ```
 
 ---
 
-### Testing the API with curl (Windows PowerShell)
+### Health Check
+
+```
+GET /api/health
+```
+```json
+{ "status": "ok", "time": "2025-01-01T08:00:00.000Z" }
+```
+
+---
+
+### Testing with PowerShell (Windows)
 
 ```powershell
 # Health check
 curl http://localhost:3000/api/health
 
-# Add a medicine
+# Register new user
+Invoke-WebRequest -Uri http://localhost:3000/api/auth/register `
+  -Method POST -ContentType "application/json" `
+  -Body '{"name":"Ajay","email":"ajay@test.com","password":"test123"}'
+
+# Login and save token
+$res   = Invoke-WebRequest -Uri http://localhost:3000/api/auth/login `
+           -Method POST -ContentType "application/json" `
+           -Body '{"email":"ajay@test.com","password":"test123"}'
+$token = ($res.Content | ConvertFrom-Json).token
+
+# Add a medicine using token
 Invoke-WebRequest -Uri http://localhost:3000/api/medicines `
-  -Method POST `
-  -ContentType "application/json" `
-  -Body '{"name":"Aspirin","dosage":"100mg","times":["09:00","21:00"]}'
+  -Method POST -ContentType "application/json" `
+  -Headers @{Authorization="Bearer $token"} `
+  -Body '{"name":"Aspirin","dosage":"100mg","times":["09:00"]}'
 
-# List all medicines
-curl http://localhost:3000/api/medicines
-
-# Mark dose taken
-Invoke-WebRequest -Uri http://localhost:3000/api/medicines/YOUR_ID/take `
-  -Method POST `
-  -ContentType "application/json" `
-  -Body '{"scheduledTime":"09:00"}'
+# Get all medicines
+Invoke-WebRequest -Uri http://localhost:3000/api/medicines `
+  -Headers @{Authorization="Bearer $token"}
 
 # View history
-curl http://localhost:3000/api/history
+Invoke-WebRequest -Uri http://localhost:3000/api/history `
+  -Headers @{Authorization="Bearer $token"}
 ```
+
+---
+
+## 🖥 Pages & UI
+
+### `/login.html` — Authentication Page
+
+- Dark glassmorphic card on an animated background
+- Background elements: floating pill shapes, ambient colour orbs, subtle grid lines
+- Tab switcher between **Sign In** and **Create Account** with slide animation
+- **Password strength meter** — 5 levels (Too Weak → Could be stronger → Good → Strong → Very Strong) with colour transitions
+- Show / hide password toggle on all password fields
+- Inline field validation with animated shake-error messages
+- Global alert banner for server-side errors (wrong password, duplicate email)
+- **Loading spinner on buttons** prevents double-submit during API call
+- **Welcome overlay animation** plays before redirecting to the dashboard
+- Automatically redirects to `/` if already logged in with a valid token
+- Fully responsive — works on mobile, tablet, and desktop
+
+### `/index.html` — Dashboard App
+
+- **JWT auth guard** runs immediately — redirects to `/login.html` if token missing or expired
+- Logged-in user **name + avatar initial** shown in the header
+- **Sign Out button** clears session and redirects to login
+- Live **clock and date** in the header, updated every second
+
+**Dashboard tab:**
+- Stat cards — Total Medicines, Taken Today, Pending Today, Best Streak
+- Medicine cards with colour gradients, emoji icons, time chips, streak counter
+- Mark Taken button — disables after all doses done, turns card green
+- Edit and Delete buttons per card
+
+**Add Medicine tab:**
+- Medicine name and dosage fields
+- Emoji icon picker (16 options)
+- Colour theme picker (8 colours)
+- Multiple reminder time slots — add or remove dynamically
+- Notes field for instructions
+
+**History tab:**
+- Filter buttons — All, Taken, Missed, Today
+- Each entry shows medicine name, dose, scheduled time, actual taken time, status badge
+
+**Notifications:**
+- Yellow banner prompts user to enable browser notifications
+- Audio alarm (Web Audio API) fires at scheduled dose time
+- Browser push notification sent at dose time
+- All API calls automatically include `Authorization: Bearer <token>`
+- On 401 response — token cleared and user redirected to login
 
 ---
 
 ## ⚙️ Environment Variables
 
-Create a `.env` file in the project root:
-
-```env
-# Server port (default: 3000)
-PORT=3000
-
-# Environment
-NODE_ENV=development
-
-# MongoDB URI (for future upgrade)
-# MONGO_URI=mongodb://localhost:27017/medsync
-```
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `PORT` | No | `3000` | Port the server listens on |
+| `NODE_ENV` | No | `development` | Environment flag |
+| `JWT_SECRET` | **Yes** | fallback string | Secret used to sign JWTs — **must change in production** |
 
 ---
 
 ## 🔧 Common Errors & Fixes
+
+### `Cannot reach server` on login/register page
+
+**Cause:** Backend not running, or a required package is missing causing crash on startup.
+
+**Fix:**
+```bash
+npm install bcryptjs jsonwebtoken
+npm install -D @types/bcryptjs @types/jsonwebtoken
+npm run dev
+```
+
+---
 
 ### `SyntaxError: Unexpected end of JSON input`
 
@@ -381,21 +606,21 @@ NODE_ENV=development
 **Fix:**
 ```bash
 # Windows
-echo {"medicines":[],"history":[]} > data\db.json
+echo {"medicines":[],"history":[],"users":[]} > data\db.json
 
 # Mac / Linux
-echo '{"medicines":[],"history":[]}' > data/db.json
+echo '{"medicines":[],"history":[],"users":[]}' > data/db.json
 ```
 
 ---
 
 ### `PathError: Missing parameter name at index 2: /*`
 
-**Cause:** Express 5 requires named wildcards. `/*` is invalid.
+**Cause:** Express 5 requires named wildcards. `/*` is not valid.
 
-**Fix:** In `src/server.ts`, change:
+**Fix:** In `src/server.ts`:
 ```ts
-// ❌ Broken
+// ❌ Old
 app.get('*', handler)
 
 // ✅ Fixed
@@ -404,65 +629,105 @@ app.get('/*path', handler)
 
 ---
 
-### `Error: listen EADDRINUSE :::3000`
-
-**Cause:** Port 3000 is already in use by another process.
+### `Error: Cannot find module 'bcryptjs'`
 
 **Fix:**
 ```bash
-# Option A — use a different port in .env
-PORT=3001
-
-# Option B — kill the process using port 3000 (Windows)
-netstat -ano | findstr :3000
-taskkill /PID <PID_NUMBER> /F
+npm install bcryptjs jsonwebtoken
 ```
 
 ---
 
-### Blank screen in browser
+### `Error: Cannot find module './routes/auth.routes'`
 
-**Cause:** `public/index.html` is missing.
+**Cause:** One or more auth files are missing.
 
-**Fix:** Make sure the file exists at `medsync/public/index.html`.
-Then hard-refresh: `Ctrl + Shift + R`
+**Fix:** Ensure all three files exist:
+```
+src/controllers/auth.controller.ts
+src/routes/auth.routes.ts
+src/middleware/auth.middleware.ts
+```
 
 ---
 
-### Buttons not working / nothing happens on click
+### `Error: listen EADDRINUSE :::3000`
 
-**Cause:** Old cached `index.html` is being served.
+**Cause:** Port 3000 is already in use.
 
 **Fix:**
-1. Replace `public/index.html` with the latest version
-2. Hard-refresh: `Ctrl + Shift + R`
-3. Check browser console (`F12`) for any red errors
+```bash
+# Find process using port 3000 (Windows)
+netstat -ano | findstr :3000
+taskkill /PID <PID_NUMBER> /F
+
+# Or change port in .env
+PORT=3001
+```
+
+---
+
+### Blank screen at `http://localhost:3000`
+
+**Cause:** `public/index.html` does not exist.
+
+**Fix:** Ensure `medsync/public/index.html` exists, then:
+```
+Ctrl + Shift + R   (hard refresh in browser)
+```
+
+---
+
+### Buttons not working (nothing happens on click)
+
+**Cause:** Old cached file served, or JS crashed on load.
+
+**Fix:**
+1. Hard refresh: `Ctrl + Shift + R`
+2. Open DevTools Console `F12` — check for red errors
+3. In console run: `document.querySelector('#btnSave') ? 'NEW FILE' : 'OLD FILE'`
+4. If `OLD FILE` — replace `public/index.html` with the latest version
+
+---
+
+### `401 Unauthorized` on all API calls after login
+
+**Cause:** JWT token not being sent in the request header.
+
+**Fix:** Make sure your `apiFetch()` function in `index.html` includes:
+```js
+headers: {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer ' + localStorage.getItem('ms_token'),
+}
+```
 
 ---
 
 ## 🌐 Deployment
 
-### Option A — Railway (Recommended, Free tier)
+### Option A — Railway *(Recommended — free tier)*
 
 ```bash
 # 1. Push to GitHub
-git init
-git add .
+git init && git add .
 git commit -m "Initial commit"
 git remote add origin https://github.com/your-username/medsync.git
 git push -u origin main
 
 # 2. Go to railway.app
-# 3. Click New Project → Deploy from GitHub → select medsync
-# 4. Set environment variable: PORT = 3000
-# 5. Railway auto-detects Node.js and runs: npm start
+# 3. New Project → Deploy from GitHub → select medsync repo
+# 4. Set environment variables in Railway dashboard:
+#    PORT       = 3000
+#    JWT_SECRET = your_strong_production_secret_here
+# 5. Railway auto-runs: npm install && npm run build && npm start
 ```
 
-Your app will be live at: `https://medsync.up.railway.app`
+App will be live at `https://medsync-production.up.railway.app`
 
 ---
 
-### Option B — Render.com (Free, auto-deploy)
+### Option B — Render.com
 
 Create `render.yaml` in the project root:
 
@@ -476,16 +741,17 @@ services:
     envVars:
       - key: PORT
         value: 10000
+      - key: JWT_SECRET
+        value: your_strong_production_secret_here
 ```
 
-Push to GitHub and connect at [render.com](https://render.com).
+Push to GitHub and connect the repo at [render.com](https://render.com).
 
 ---
 
 ### Option C — Docker
 
-Create a `Dockerfile` in the project root:
-
+**`Dockerfile`:**
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
@@ -497,7 +763,7 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
-Create `.dockerignore`:
+**`.dockerignore`:**
 ```
 node_modules
 dist
@@ -505,95 +771,139 @@ data
 .env
 ```
 
-Build and run:
+**Build and run:**
 ```bash
 docker build -t medsync .
-docker run -p 3000:3000 -v $(pwd)/data:/app/data medsync
+docker run -p 3000:3000 \
+  -e JWT_SECRET=your_strong_secret \
+  -v $(pwd)/data:/app/data \
+  medsync
 ```
 
 ---
 
 ## 🍃 Upgrading to MongoDB
 
-The database layer is designed to be swappable. Only `src/db/database.ts` needs to change — all controllers stay the same.
+The database layer is fully isolated in `src/db/database.ts`. Only that file changes — all controllers, routes, auth middleware and the frontend remain identical.
 
 ### Step 1 — Install Mongoose
-
 ```bash
 npm install mongoose
 npm install -D @types/mongoose
 ```
 
-### Step 2 — Add `MONGO_URI` to `.env`
-
+### Step 2 — Add MongoDB URI to `.env`
 ```env
 MONGO_URI=mongodb://localhost:27017/medsync
+# For MongoDB Atlas:
+# MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/medsync
 ```
 
-### Step 3 — Create a Mongoose model
+### Step 3 — Create Mongoose models
 
-Create `src/models/medicine.model.ts`:
+**`src/models/user.model.ts`:**
+```ts
+import mongoose from 'mongoose';
 
+const UserSchema = new mongoose.Schema({
+  name:         { type: String, required: true },
+  email:        { type: String, required: true, unique: true, lowercase: true },
+  passwordHash: { type: String, required: true },
+}, { timestamps: true });
+
+export const UserModel = mongoose.model('User', UserSchema);
+```
+
+**`src/models/medicine.model.ts`:**
 ```ts
 import mongoose from 'mongoose';
 
 const MedicineSchema = new mongoose.Schema({
-  name:      { type: String, required: true },
-  dosage:    { type: String, required: true },
-  times:     [String],
-  emoji:     { type: String, default: '💊' },
-  color:     String,
-  notes:     String,
-  streak:    { type: Number, default: 0 },
-  active:    { type: Boolean, default: true },
+  name:   { type: String, required: true },
+  dosage: { type: String, required: true },
+  times:  [String],
+  emoji:  { type: String, default: '💊' },
+  color:  String,
+  notes:  String,
+  streak: { type: Number, default: 0 },
+  active: { type: Boolean, default: true },
 }, { timestamps: true });
 
 export const MedicineModel = mongoose.model('Medicine', MedicineSchema);
 ```
 
-### Step 4 — Connect in `server.ts`
+**`src/models/history.model.ts`:**
+```ts
+import mongoose from 'mongoose';
 
+const HistorySchema = new mongoose.Schema({
+  medicineId:    { type: String, required: true },
+  medicineName:  { type: String, required: true },
+  emoji:         String,
+  dose:          String,
+  scheduledTime: String,
+  takenAt:       { type: Date, default: Date.now },
+  status:        { type: String, enum: ['taken', 'missed'], default: 'taken' },
+});
+
+export const HistoryModel = mongoose.model('History', HistorySchema);
+```
+
+### Step 4 — Connect in `server.ts`
 ```ts
 import mongoose from 'mongoose';
 
 mongoose.connect(process.env.MONGO_URI!)
-  .then(() => console.log('MongoDB connected'))
+  .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('MongoDB error:', err));
 ```
 
-### Step 5 — Replace `database.ts` calls with Mongoose queries
+### Step 5 — Swap `database.ts` calls in controllers
 
 ```ts
 // Before (JSON file)
-const db = readDb();
-const medicines = db.medicines;
+const db       = readDb();
+const medicines = db.medicines.filter(m => m.active);
 
 // After (MongoDB)
 const medicines = await MedicineModel.find({ active: true });
 ```
 
-Controllers will need `async/await` added — routes stay identical.
+> Controllers need `async/await` added to each handler. Routes, middleware, and the entire frontend stay untouched.
 
 ---
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m "Add your feature"`
-4. Push the branch: `git push origin feature/your-feature`
-5. Open a Pull Request
+2. Create a feature branch
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. Make changes and commit
+   ```bash
+   git commit -m "feat: describe what you added"
+   ```
+4. Push and open a Pull Request
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+### Commit convention
+| Prefix | Use for |
+|---|---|
+| `feat:` | New feature |
+| `fix:` | Bug fix |
+| `docs:` | Documentation only |
+| `refactor:` | Code change with no feature/fix |
+| `chore:` | Dependencies, config, tooling |
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
-
 ```
-MIT License
-
-Copyright (c) 2025 Ajay
+MIT License — Copyright (c) 2025 Ajay, Solapur, Maharashtra, India
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -602,8 +912,8 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -614,6 +924,8 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 <div align="center">
 
-Built with ❤️ by **Ajay** · [Report a Bug](https://github.com/your-username/medsync/issues) · [Request a Feature](https://github.com/your-username/medsync/issues)
+Built with ❤️ by **Ajay** · Solapur, Maharashtra, India
+
+[⬆ Back to top](#-medsync)
 
 </div>

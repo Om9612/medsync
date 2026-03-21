@@ -1,0 +1,45 @@
+{
+  "medicines": [
+    {
+      "id": "17bd7eaf-f1fa-46e5-b451-8132d2344a92",
+      "name": "Paracetamol",
+      "dosage": "1 tablet",
+      "times": [
+        "08:00"
+      ],
+      "emoji": "💊",
+      "color": "rgba(245,158,11,0.12)",
+      "notes": "",
+      "streak": 1,
+      "active": false,
+      "createdAt": "2026-03-21T06:15:52.409Z"
+    }
+  ],
+  "history": [
+    {
+      "id": "04058709-3c18-40f1-9cf3-74e0177fb83d",
+      "medicineId": "17bd7eaf-f1fa-46e5-b451-8132d2344a92",
+      "medicineName": "Paracetamol",
+      "dose": "1 tablet",
+      "scheduledTime": "08:00",
+      "takenAt": "2026-03-21T06:15:58.313Z",
+      "status": "taken"
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "passwordHash": "$2b$10$...",
+      "createdAt": "2026-03-21T06:15:52.409Z"
+    },
+    {
+      "id": "f06d93f1-b84e-40f7-b171-0eae13cc1bbb",
+      "name": "om",
+      "email": "sawantom@gmail.com",
+      "passwordHash": "$2b$10$7YtlYWtrXJsziNiSvw/Wk.t.1u6auBF2aMs8CbYEWf5WWlsQ1vPs6",
+      "createdAt": "2026-03-21T11:18:21.098Z"
+    }
+  ]
+}

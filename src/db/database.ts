@@ -1,39 +1,51 @@
-import fs   from 'node:fs';
-import path from 'node:path';
-import { Database } from '../types';
+// src/db/database.ts  — updated to support users
+import fs   from 'fs';
+import path from 'path';
 
-// Path to our JSON "database" file
 const DB_PATH = path.join(__dirname, '../../data/db.json');
 
-// Default empty database structure
-const DEFAULT_DB: Database = {
-medicines: [],
-history:   [],
+const EMPTY_DB = {
+  medicines: [] as any[],
+  history:   [] as any[],
+  users:     [] as any[],
 };
 
-// READ: load db.json from disk into memory
-export function readDb(): Database {
-if (!fs.existsSync(DB_PATH)) {
-    // First run — create the file
-    writeDb(DEFAULT_DB);
-    return DEFAULT_DB;
-}
-const raw = fs.readFileSync(DB_PATH, 'utf-8');
-return JSON.parse(raw) as Database;
+export function readDb(): typeof EMPTY_DB {
+  try {
+    if (!fs.existsSync(DB_PATH)) {
+      writeDb(EMPTY_DB);
+      return { ...EMPTY_DB };
+    }
+
+    const raw = fs.readFileSync(DB_PATH, 'utf-8').trim();
+
+    if (!raw) {
+      writeDb(EMPTY_DB);
+      return { ...EMPTY_DB };
+    }
+
+    const data = JSON.parse(raw);
+
+    // Ensure all arrays exist (handles old db.json without users)
+    if (!Array.isArray(data.medicines)) data.medicines = [];
+    if (!Array.isArray(data.history))   data.history   = [];
+    if (!Array.isArray(data.users))     data.users     = [];
+
+    return data;
+  } catch (err) {
+    console.error('[DB] db.json corrupted, resetting:', err);
+    writeDb(EMPTY_DB);
+    return { ...EMPTY_DB };
+  }
 }
 
-// WRITE: save updated data back to disk
-export function writeDb(data: Database): void {
-const dir = path.dirname(DB_PATH);
-  // Ensure /data/ folder exists
-if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  // Pretty-print with 2-space indent for readability
-fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+export function writeDb(data: typeof EMPTY_DB): void {
+  try {
+    const dir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('[DB] Write failed:', err);
+    throw err;
+  }
 }
-/* ---- FUTURE MONGODB SWAP ----
-import mongoose from 'mongoose';
-export async function connectDb() {
-await mongoose.connect(process.env.MONGO_URI!);
-}
-The controllers won't change — only this file.
----------------------------------*/
