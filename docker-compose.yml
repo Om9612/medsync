@@ -1,0 +1,39 @@
+# ─────────────────────────────────────────────────────────────
+#  MedSync — docker-compose.yml
+#  Place this file in:  C:\Users\AJAY\Desktop\medsync\docker-compose.yml
+#
+#  Usage:
+#    docker compose up --build      (first time)
+#    docker compose up              (after first time)
+#    docker compose down            (stop)
+#    docker compose down -v         (stop + remove volumes)
+# ─────────────────────────────────────────────────────────────
+
+version: '3.8'
+
+services:
+  medsync:
+    # Build the image from the Dockerfile in the current directory
+    build: .
+
+    # Name shown in Docker Desktop
+    container_name: medsync-app
+
+    # Map your PC port 3000 → container port 3000
+    # Format: "HOST_PORT:CONTAINER_PORT"
+    ports:
+      - "3001:3000"
+
+    # Environment variables (no .env file needed inside Docker)
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - JWT_SECRET=medsync_super_secret_key_change_this_2025
+
+    # Volume: maps your local ./data folder to /app/data inside container
+    # This means db.json is saved on YOUR machine, not lost on container restart
+    volumes:
+      - ./data:/app/data
+
+    # Automatically restart container if it crashes
+    restart: unless-stopped

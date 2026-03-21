@@ -1,0 +1,9 @@
+# These folders/files are NOT copied into the Docker image
+node_modules
+dist
+data
+.env
+*.log
+.git
+.gitignore
+README.md
