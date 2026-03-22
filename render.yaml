@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: medsync
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        value: medsync_render_secret_2025
