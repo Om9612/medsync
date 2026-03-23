@@ -924,7 +924,6 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 <div align="center">
 
-Built with ❤️ by **Ajay** · Solapur, Maharashtra, India
 
 [⬆ Back to top](#-medsync)
 
