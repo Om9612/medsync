@@ -15,26 +15,6 @@
 
 ---
 
-## 📋 Table of Contents
-
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Installation & Setup](#-installation--setup)
-- [Running the App](#-running-the-app)
-- [Authentication Flow](#-authentication-flow)
-- [API Reference](#-api-reference)
-- [Pages & UI](#-pages--ui)
-- [Environment Variables](#-environment-variables)
-- [Common Errors & Fixes](#-common-errors--fixes)
-- [Deployment](#-deployment)
-- [Upgrading to MongoDB](#-upgrading-to-mongodb)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
-
 ## ✨ Features
 
 ### 🔐 Authentication
