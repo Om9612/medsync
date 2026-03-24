@@ -77,48 +77,6 @@
 
 ---
 
-## 📁 Project Structure
-
-```
-medsync/
-│
-├── src/                              # Backend TypeScript source
-│   ├── server.ts                     # Express app entry point
-│   │
-│   ├── types/
-│   │   └── index.ts                  # All shared TypeScript interfaces
-│   │
-│   ├── db/
-│   │   └── database.ts               # JSON read/write layer
-│   │
-│   ├── middleware/
-│   │   └── auth.middleware.ts        # JWT verification middleware
-│   │
-│   ├── routes/
-│   │   ├── auth.routes.ts            # /api/auth/*
-│   │   ├── medicine.routes.ts        # /api/medicines/*
-│   │   └── history.routes.ts         # /api/history/*
-│   │
-│   └── controllers/
-│       ├── auth.controller.ts        # register · login · getMe
-│       ├── medicine.controller.ts    # CRUD + mark taken
-│       └── history.controller.ts    # list + filter history
-│
-├── public/                           # Frontend static files
-│   ├── login.html                    # Login / Sign-up page
-│   └── index.html                    # Main dashboard app
-│
-├── data/
-│   └── db.json                       # JSON database (auto-created)
-│
-├── dist/                             # Compiled JS output (auto-generated)
-│
-├── .env                              # Environment variables
-├── .gitignore
-├── tsconfig.json
-├── package.json
-└── README.md
-```
 
 ---
 
