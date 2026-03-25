@@ -77,48 +77,6 @@
 
 ---
 
-## 📁 Project Structure
-
-```
-medsync/
-│
-├── src/                              # Backend TypeScript source
-│   ├── server.ts                     # Express app entry point
-│   │
-│   ├── types/
-│   │   └── index.ts                  # All shared TypeScript interfaces
-│   │
-│   ├── db/
-│   │   └── database.ts               # JSON read/write layer
-│   │
-│   ├── middleware/
-│   │   └── auth.middleware.ts        # JWT verification middleware
-│   │
-│   ├── routes/
-│   │   ├── auth.routes.ts            # /api/auth/*
-│   │   ├── medicine.routes.ts        # /api/medicines/*
-│   │   └── history.routes.ts         # /api/history/*
-│   │
-│   └── controllers/
-│       ├── auth.controller.ts        # register · login · getMe
-│       ├── medicine.controller.ts    # CRUD + mark taken
-│       └── history.controller.ts    # list + filter history
-│
-├── public/                           # Frontend static files
-│   ├── login.html                    # Login / Sign-up page
-│   └── index.html                    # Main dashboard app
-│
-├── data/
-│   └── db.json                       # JSON database (auto-created)
-│
-├── dist/                             # Compiled JS output (auto-generated)
-│
-├── .env                              # Environment variables
-├── .gitignore
-├── tsconfig.json
-├── package.json
-└── README.md
-```
 
 ---
 
@@ -324,8 +282,8 @@ Register a new user account.
 Request body:
 ```json
 {
-  "name":     "Ajay Kumar",
-  "email":    "ajay@example.com",
+  "name":     "vaishnavi kadam",
+  "email":    "vaishnavi@example.com",
   "password": "mypassword123"
 }
 ```
@@ -337,8 +295,8 @@ Success response `201`:
   "token":   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id":        "550e8400-e29b-41d4-a716-446655440000",
-    "name":      "Ajay Kumar",
-    "email":     "ajay@example.com",
+    "name":      "vaishnavi kadam",
+    "email":     "vaishnavi@example.com",
     "createdAt": "2025-01-01T00:00:00.000Z"
   }
 }
@@ -361,7 +319,7 @@ Login with existing credentials.
 Request body:
 ```json
 {
-  "email":    "ajay@example.com",
+  "email":    "vaishnavi@example.com",
   "password": "mypassword123"
 }
 ```
@@ -480,12 +438,12 @@ curl http://localhost:3000/api/health
 # Register new user
 Invoke-WebRequest -Uri http://localhost:3000/api/auth/register `
   -Method POST -ContentType "application/json" `
-  -Body '{"name":"Ajay","email":"ajay@test.com","password":"test123"}'
+  -Body '{"name":"vaishnavi","email":"vaishnavi@test.com","password":"test123"}'
 
 # Login and save token
 $res   = Invoke-WebRequest -Uri http://localhost:3000/api/auth/login `
            -Method POST -ContentType "application/json" `
-           -Body '{"email":"ajay@test.com","password":"test123"}'
+           -Body '{"email":"vaishnavi@test.com","password":"test123"}'
 $token = ($res.Content | ConvertFrom-Json).token
 
 # Add a medicine using token
