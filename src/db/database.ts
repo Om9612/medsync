@@ -1,45 +1,37 @@
-// src/db/database.ts  — updated to support users
+// ─────────────────────────────────────────────────────────────
+//  FILE PATH: medsync/src/db/database.ts
+//  REPLACE your existing src/db/database.ts with this file
+// ─────────────────────────────────────────────────────────────
 import fs   from 'fs';
 import path from 'path';
 
 const DB_PATH = path.join(__dirname, '../../data/db.json');
+const EMPTY   = { medicines: [] as any[], history: [] as any[], users: [] as any[] };
 
-const EMPTY_DB = {
-  medicines: [] as any[],
-  history:   [] as any[],
-  users:     [] as any[],
-};
-
-export function readDb(): typeof EMPTY_DB {
+export function readDb(): typeof EMPTY {
   try {
     if (!fs.existsSync(DB_PATH)) {
-      writeDb(EMPTY_DB);
-      return { ...EMPTY_DB };
+      writeDb(EMPTY);
+      return { ...EMPTY };
     }
-
     const raw = fs.readFileSync(DB_PATH, 'utf-8').trim();
-
     if (!raw) {
-      writeDb(EMPTY_DB);
-      return { ...EMPTY_DB };
+      writeDb(EMPTY);
+      return { ...EMPTY };
     }
-
     const data = JSON.parse(raw);
-
-    // Ensure all arrays exist (handles old db.json without users)
     if (!Array.isArray(data.medicines)) data.medicines = [];
     if (!Array.isArray(data.history))   data.history   = [];
     if (!Array.isArray(data.users))     data.users     = [];
-
     return data;
   } catch (err) {
-    console.error('[DB] db.json corrupted, resetting:', err);
-    writeDb(EMPTY_DB);
-    return { ...EMPTY_DB };
+    console.error('[DB] Corrupt db.json — resetting:', err);
+    writeDb(EMPTY);
+    return { ...EMPTY };
   }
 }
 
-export function writeDb(data: typeof EMPTY_DB): void {
+export function writeDb(data: typeof EMPTY): void {
   try {
     const dir = path.dirname(DB_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
