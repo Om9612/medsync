@@ -2,993 +2,578 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>MedSync — Smart Medicine Reminder</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MedSync — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --bg:#0a0f1e; --surface:#111827; --surface2:#1a2235;
-    --border:#1f2e48; --accent:#00e5ff; --accent2:#7c3aed;
-    --accent3:#10b981; --danger:#ef4444; --warn:#f59e0b;
-    --text:#e2e8f0; --muted:#64748b;
-    --font-head:'Syne',sans-serif; --font-body:'DM Sans',sans-serif;
-    --radius:16px;
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden}
-  body::before{content:'';position:fixed;inset:0;
-    background-image:linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);
-    background-size:40px 40px;pointer-events:none;z-index:0}
-  .blob{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:blobFloat 8s ease-in-out infinite alternate}
-  .blob1{width:400px;height:400px;background:rgba(0,229,255,0.05);top:-100px;right:-100px}
-  .blob2{width:300px;height:300px;background:rgba(124,58,237,0.06);bottom:-80px;left:-60px;animation-delay:3s}
-  @keyframes blobFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(20px,30px) scale(1.05)}}
-  .app-shell{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px 60px}
-
-  /* ── Header ── */
-  header{display:flex;align-items:center;justify-content:space-between;padding:28px 0 32px;border-bottom:1px solid var(--border);margin-bottom:36px}
-  .logo{display:flex;align-items:center;gap:12px}
-  .logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
-  .logo-text{font-family:var(--font-head);font-size:1.6rem;font-weight:800;letter-spacing:-0.5px}
-  .logo-text span{color:var(--accent)}
-  .clock{font-family:var(--font-head);font-size:2rem;font-weight:700;color:var(--accent);letter-spacing:2px;text-align:right}
-  .date-str{font-size:0.8rem;color:var(--muted);margin-top:2px;text-align:right}
-
-  /* ── Tabs ── */
-  .nav-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:32px;width:fit-content}
-  .nav-tab{padding:9px 22px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:var(--font-body);font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px}
-  .nav-tab.active{background:linear-gradient(135deg,rgba(0,229,255,0.15),rgba(124,58,237,0.15));color:var(--accent);border:1px solid rgba(0,229,255,0.25)}
-  .nav-tab:hover:not(.active){color:var(--text);background:var(--surface2)}
-
-  /* ── Panels ── */
-  .panel{display:none}
-  .panel.active{display:block;animation:fadeUp 0.35s ease}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-
-  /* ── Stats ── */
-  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:border-color 0.2s}
-  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-  .stat-card.c1::before{background:linear-gradient(90deg,var(--accent),transparent)}
-  .stat-card.c2::before{background:linear-gradient(90deg,var(--accent3),transparent)}
-  .stat-card.c3::before{background:linear-gradient(90deg,var(--warn),transparent)}
-  .stat-card.c4::before{background:linear-gradient(90deg,var(--accent2),transparent)}
-  .stat-label{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-  .stat-value{font-family:var(--font-head);font-size:2.2rem;font-weight:800;line-height:1}
-  .stat-card.c1 .stat-value{color:var(--accent)}
-  .stat-card.c2 .stat-value{color:var(--accent3)}
-  .stat-card.c3 .stat-value{color:var(--warn)}
-  .stat-card.c4 .stat-value{color:var(--accent2)}
-
-  /* ── Section header ── */
-  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-  .section-title{font-family:var(--font-head);font-size:1.2rem;font-weight:700}
-  .badge{padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;background:rgba(0,229,255,0.12);color:var(--accent);border:1px solid rgba(0,229,255,0.2)}
-
-  /* ── Medicine cards ── */
-  .med-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
-  .med-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:all 0.25s;animation:cardIn 0.4s ease}
-  @keyframes cardIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
-  .med-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.3)}
-  .med-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-  .med-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-  .med-name{font-family:var(--font-head);font-size:1.05rem;font-weight:700;margin-bottom:3px}
-  .med-dosage{font-size:0.78rem;color:var(--muted)}
-  .card-actions{display:flex;gap:6px}
-  .btn-icon{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.2s;flex-shrink:0}
-  .btn-icon:hover{border-color:var(--danger);color:var(--danger)}
-  .btn-icon.edit-btn:hover{border-color:var(--accent);color:var(--accent)}
-  .med-times{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-  .time-chip{padding:4px 10px;border-radius:6px;font-size:0.78rem;font-weight:500;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;gap:5px}
-  .time-chip.is-next{border-color:rgba(0,229,255,0.4);color:var(--accent);background:rgba(0,229,255,0.06)}
-  .time-chip.is-taken{border-color:rgba(16,185,129,0.4);color:var(--accent3);background:rgba(16,185,129,0.06)}
-  .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
-  .dot-cyan{background:var(--accent)}
-  .dot-green{background:var(--accent3)}
-  .med-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border)}
-  .streak{font-size:0.78rem;color:var(--muted)}
-  .streak b{color:var(--warn)}
-
-  /* ── Buttons ── */
-  .btn-take{padding:7px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--accent3),#059669);color:#fff;font-family:var(--font-body);font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s}
-  .btn-take:hover:not(:disabled){transform:scale(1.05);box-shadow:0 4px 15px rgba(16,185,129,0.4)}
-  .btn-take:disabled{background:rgba(16,185,129,0.15);color:var(--accent3);border:1px solid rgba(16,185,129,0.3);cursor:not-allowed;transform:none;box-shadow:none}
-
-  /* ── Empty state ── */
-  .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
-  .empty-icon{font-size:3.5rem;margin-bottom:16px;opacity:0.5}
-  .empty-title{font-family:var(--font-head);font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:8px}
-  .empty-sub{font-size:0.88rem;line-height:1.6}
-
-  /* ── Form ── */
-  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;max-width:600px}
-  .form-title{font-family:var(--font-head);font-size:1.4rem;font-weight:800;margin-bottom:28px}
-  .form-title span{color:var(--accent)}
-  .form-group{margin-bottom:22px}
-  .form-label{display:block;font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-  .form-input,.form-textarea{width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:0.92rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
-  .form-input:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,0.08)}
-  .form-textarea{resize:vertical;min-height:80px}
-  .times-builder{display:flex;flex-direction:column;gap:10px}
-  .time-row{display:flex;align-items:center;gap:10px}
-  .time-row .form-input{flex:1}
-  .btn-rm-time{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:16px;transition:all 0.2s;flex-shrink:0}
-  .btn-rm-time:hover{border-color:var(--danger);color:var(--danger)}
-  .btn-add-time{padding:9px 16px;border-radius:9px;border:1px dashed var(--border);background:transparent;color:var(--accent);font-family:var(--font-body);font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.2s;margin-top:10px;display:inline-flex;align-items:center;gap:6px}
-  .btn-add-time:hover{border-color:var(--accent);background:rgba(0,229,255,0.06)}
-  .emoji-grid{display:flex;flex-wrap:wrap;gap:8px}
-  .emoji-opt{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.2s;user-select:none}
-  .emoji-opt.sel{border-color:var(--accent);background:rgba(0,229,255,0.1);box-shadow:0 0 0 2px rgba(0,229,255,0.2);transform:scale(1.1)}
-  .emoji-opt:hover:not(.sel){transform:scale(1.05)}
-  .color-grid{display:flex;gap:8px;flex-wrap:wrap}
-  .color-dot{width:32px;height:32px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all 0.2s}
-  .color-dot.sel{border-color:#fff;transform:scale(1.15)}
-  .form-actions{display:flex;gap:12px;margin-top:28px}
-  .btn-primary{padding:13px 28px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),#0284c7);color:#0a0f1e;font-family:var(--font-head);font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,229,255,0.35)}
-  .btn-secondary{padding:13px 22px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:var(--font-body);font-size:0.88rem;cursor:pointer;transition:all 0.2s}
-  .btn-secondary:hover{border-color:var(--muted);background:var(--surface2)}
-
-  /* ── History ── */
-  .filter-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-  .filter-btn{padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:var(--font-body);font-size:0.8rem;cursor:pointer;transition:all 0.2s}
-  .filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,0.08)}
-  .filter-btn:hover:not(.active){color:var(--text)}
-  .history-list{display:flex;flex-direction:column;gap:10px}
-  .hist-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;animation:cardIn 0.3s ease}
-  .hist-item.taken-rec{border-left:3px solid var(--accent3)}
-  .hist-item.missed-rec{border-left:3px solid var(--danger)}
-  .hist-info{flex:1}
-  .hist-name{font-weight:600;font-size:0.9rem;margin-bottom:2px}
-  .hist-detail{font-size:0.78rem;color:var(--muted)}
-  .hist-badge{font-size:0.75rem;font-weight:600;padding:4px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
-  .hist-badge.taken{background:rgba(16,185,129,0.12);color:var(--accent3)}
-  .hist-badge.missed{background:rgba(239,68,68,0.12);color:var(--danger)}
-  .hist-time{font-size:0.78rem;color:var(--muted);text-align:right;min-width:70px}
-
-  /* ── Toast ── */
-  .toast-wrap{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px}
-  .toast{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-width:300px;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;align-items:flex-start;gap:12px;position:relative;overflow:hidden;animation:tIn 0.4s cubic-bezier(0.34,1.56,0.64,1)}
-  @keyframes tIn{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:translateX(0)}}
-  .toast.out{animation:tOut 0.3s ease forwards}
-  @keyframes tOut{to{opacity:0;transform:translateX(80px)}}
-  .toast::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
-  .toast.warn::before{background:var(--warn)}
-  .toast.success::before{background:var(--accent3)}
-  .toast.error::before{background:var(--danger)}
-  .toast-ico{font-size:20px;flex-shrink:0;margin-top:1px}
-  .toast-body{flex:1;min-width:0}
-  .toast-title{font-weight:700;font-size:0.88rem;font-family:var(--font-head);margin-bottom:2px}
-  .toast-msg{font-size:0.78rem;color:var(--muted);line-height:1.4;word-break:break-word}
-  .toast-x{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1;flex-shrink:0;margin-top:1px}
-  .toast-x:hover{color:var(--text)}
-
-  /* ── Notif banner ── */
-  .notif-banner{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:24px}
-  .notif-banner.gone{display:none}
-  .notif-text{flex:1;font-size:0.85rem}
-  .notif-text strong{color:var(--warn)}
-  .btn-notif{padding:8px 16px;border-radius:8px;border:none;background:var(--warn);color:#1a1200;font-family:var(--font-body);font-size:0.8rem;font-weight:700;cursor:pointer;transition:transform 0.2s;white-space:nowrap}
-  .btn-notif:hover{transform:scale(1.05)}
-
-  /* ── API error bar ── */
-  .err-bar{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:0.85rem;color:var(--danger);display:none}
-  .err-bar.show{display:block}
-
-  /* ── Loading spinner ── */
-  .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  @media(max-width:640px){
-    header{flex-direction:column;gap:16px;text-align:center}
-    .clock,.date-str{text-align:center}
-    .nav-tabs{width:100%;overflow-x:auto}
-    .form-card{padding:20px}
-    .stats-row{grid-template-columns:1fr 1fr}
-    .med-grid{grid-template-columns:1fr}
-  }
-</style>
-<!-- ============================================================
-  ADD THIS <script> block as the VERY FIRST script in index.html
-  (paste it right before the closing </head> tag)
-  It checks for a valid JWT before showing the dashboard.
-  If not logged in → redirects to /login.html immediately.
-============================================================ -->
-
-<script>
-(function guardAuth() {
-  const token = localStorage.getItem('ms_token');
-
-  // No token at all → go to login
-  if (!token) {
-    window.location.href = '/login.html';
-    return;
-  }
-
-  // Verify token with backend before loading the app
-  fetch('/api/auth/me', {
-    headers: { 'Authorization': 'Bearer ' + token }
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (!data.success) {
-      // Token expired or invalid
-      localStorage.removeItem('ms_token');
-      localStorage.removeItem('ms_user');
-      window.location.href = '/login.html';
-    } else {
-      // Token valid — store fresh user data
-      localStorage.setItem('ms_user', JSON.stringify(data.user));
-      // Show welcome name in header (optional)
-      const nameEl = document.getElementById('userName');
-      if (nameEl) nameEl.textContent = data.user.name;
-    }
-  })
-  .catch(() => {
-    // Backend unreachable — allow offline use with cached token
-    console.warn('[Auth] Backend unreachable, using cached session.');
-  });
-})();
-</script>
-
-
-<!-- ============================================================
-  ADD THIS to your header HTML in index.html
-  (replace your existing header logo section)
-  Shows the logged-in user's name and a logout button
-============================================================ -->
-
-<!--
-  In your header, add a user info section:
-
-  <div class="user-info">
-    <div class="user-avatar" id="userAvatar">A</div>
-    <div>
-      <div class="user-name" id="userName">Loading...</div>
-      <div class="user-email" id="userEmail"></div>
-    </div>
-    <button class="btn-logout" id="btnLogout">Sign Out</button>
-  </div>
--->
-
-
-<!-- ============================================================
-  ADD THESE STYLES to your <style> block in index.html
-============================================================ -->
-<style>
-/* User info in header */
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+:root{
+  --bg:#0a0f1e;--surf:#111827;--surf2:#1a2235;--brd:#1f2e48;
+  --cyan:#00e5ff;--purple:#7c3aed;--green:#10b981;--red:#ef4444;--amber:#f59e0b;
+  --txt:#e2e8f0;--muted:#64748b;--fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--radius:16px;
 }
-.user-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-head);
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #050d1f;
-  flex-shrink: 0;
-}
-.user-name {
-  font-weight: 600;
-  font-size: 0.88rem;
-  line-height: 1.2;
-}
-.user-email {
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-.btn-logout {
-  padding: 7px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.btn-logout:hover {
-  border-color: var(--danger);
-  color: var(--danger);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,229,255,.03)1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03)1px,transparent 1px);background-size:40px 40px}
+.blob{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:bf 8s ease-in-out infinite alternate}
+.blob1{width:400px;height:400px;background:rgba(0,229,255,.05);top:-100px;right:-100px}
+.blob2{width:300px;height:300px;background:rgba(124,58,237,.06);bottom:-80px;left:-60px;animation-delay:3s}
+@keyframes bf{from{transform:translate(0,0)}to{transform:translate(20px,30px)}}
+.shell{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px 80px}
+
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;padding:22px 0 28px;border-bottom:1px solid var(--brd);margin-bottom:36px;flex-wrap:wrap;gap:16px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-ico{width:44px;height:44px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.logo-text{font-family:var(--fh);font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
+.logo-text span{color:var(--cyan)}
+.logo-sub{font-size:.72rem;color:var(--muted);margin-top:1px}
+.hright{display:flex;align-items:center;gap:16px}
+.clock{font-family:var(--fh);font-size:1.6rem;font-weight:700;color:var(--cyan);letter-spacing:2px}
+.dates{font-size:.72rem;color:var(--muted);text-align:right;margin-top:1px}
+
+/* User menu */
+.umenu{position:relative}
+.ubtn{display:flex;align-items:center;gap:10px;padding:7px 14px 7px 7px;background:var(--surf);border:1px solid var(--brd);border-radius:50px;cursor:pointer;transition:all .2s;user-select:none}
+.ubtn:hover{border-color:rgba(0,229,255,.35);box-shadow:0 0 0 3px rgba(0,229,255,.06)}
+.uavatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:.88rem;color:#050d1f;flex-shrink:0}
+.uinfo{text-align:left;line-height:1.3}
+.uname{font-size:.82rem;font-weight:600;color:var(--txt)}
+.uemail{font-size:.68rem;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chevron{font-size:10px;color:var(--muted);transition:transform .25s;margin-left:2px}
+.umenu.open .chevron{transform:rotate(180deg)}
+
+/* Dropdown */
+.drop{position:absolute;top:calc(100% + 10px);right:0;background:var(--surf);border:1px solid var(--brd);border-radius:16px;min-width:240px;overflow:hidden;z-index:999;box-shadow:0 20px 60px rgba(0,0,0,.5);opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.umenu.open .drop{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.drop-head{padding:16px;border-bottom:1px solid var(--brd);background:linear-gradient(135deg,rgba(0,229,255,.06),rgba(124,58,237,.06))}
+.dh-av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:800;font-size:1.15rem;color:#050d1f;margin-bottom:10px;box-shadow:0 0 20px rgba(0,229,255,.2)}
+.dh-name{font-family:var(--fh);font-weight:700;font-size:.95rem;margin-bottom:2px}
+.dh-email{font-size:.72rem;color:var(--muted)}
+.dh-badge{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:3px 8px;border-radius:20px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);font-size:.68rem;color:var(--green);font-weight:600}
+.drop-sec{padding:8px}
+.ditem{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .15s;font-size:.85rem;font-weight:500;color:var(--txt);border:none;background:none;width:100%;text-align:left}
+.ditem:hover{background:var(--surf2);color:var(--cyan)}
+.dico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--surf2);transition:background .15s}
+.ditem:hover .dico{background:rgba(0,229,255,.1)}
+.ditem.danger{color:var(--red)}
+.ditem.danger:hover{background:rgba(239,68,68,.08);color:var(--red)}
+.ditem.danger:hover .dico{background:rgba(239,68,68,.12)}
+.ddiv{height:1px;background:var(--brd);margin:4px 8px}
+
+/* Logout confirm modal */
+.modal-bg{position:fixed;inset:0;z-index:9998;background:rgba(6,11,24,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-bg.show{opacity:1;pointer-events:all}
+.modal-box{background:var(--surf);border:1px solid var(--brd);border-radius:20px;padding:32px;max-width:380px;width:calc(100% - 40px);transform:translateY(20px) scale(.96);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.modal-bg.show .modal-box{transform:translateY(0) scale(1)}
+.modal-ico{width:56px;height:56px;border-radius:16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:18px}
+.modal-title{font-family:var(--fh);font-size:1.2rem;font-weight:800;margin-bottom:8px}
+.modal-msg{font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.modal-acts{display:flex;gap:10px}
+.btn-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid var(--brd);background:transparent;color:var(--txt);font-family:var(--fb);font-size:.88rem;cursor:pointer;transition:all .2s}
+.btn-cancel:hover{border-color:var(--muted);background:var(--surf2)}
+.btn-lo{flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;font-family:var(--fh);font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-lo:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(239,68,68,.35)}
+
+/* Logout overlay */
+.lo-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.lo-overlay.show{display:flex;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.lo-spinner{width:44px;height:44px;border:3px solid var(--brd);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin-top:8px}
+
+/* Nav */
+.nav{display:flex;gap:4px;background:var(--surf);border:1px solid var(--brd);border-radius:12px;padding:4px;margin-bottom:32px;width:fit-content}
+.ntab{padding:9px 20px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:var(--fb);font-size:.88rem;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.ntab.on{background:linear-gradient(135deg,rgba(0,229,255,.15),rgba(124,58,237,.15));color:var(--cyan);border:1px solid rgba(0,229,255,.25)}
+.ntab:hover:not(.on){color:var(--txt);background:var(--surf2)}
+
+/* Panels */
+.panel{display:none}.panel.on{display:block;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:32px}
+.scard{background:var(--surf);border:1px solid var(--brd);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:border-color .2s}
+.scard:hover{border-color:rgba(0,229,255,.3)}
+.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.scard.s1::before{background:linear-gradient(90deg,var(--cyan),transparent)}
+.scard.s2::before{background:linear-gradient(90deg,var(--green),transparent)}
+.scard.s3::before{background:linear-gradient(90deg,var(--amber),transparent)}
+.scard.s4::before{background:linear-gradient(90deg,var(--purple),transparent)}
+.slabel{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.sval{font-family:var(--fh);font-size:2rem;font-weight:800;line-height:1}
+.scard.s1 .sval{color:var(--cyan)}.scard.s2 .sval{color:var(--green)}.scard.s3 .sval{color:var(--amber)}.scard.s4 .sval{color:var(--purple)}
+
+/* Section */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.stitle{font-family:var(--fh);font-size:1.15rem;font-weight:700}
+.badge{padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;background:rgba(0,229,255,.12);color:var(--cyan);border:1px solid rgba(0,229,255,.2)}
+
+/* Med cards */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.mcard{background:var(--surf);border:1px solid var(--brd);border-radius:var(--radius);padding:20px;transition:all .25s;animation:ci .4s ease}
+@keyframes ci{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.mchead{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.mico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.mname{font-family:var(--fh);font-size:1rem;font-weight:700;margin-bottom:3px}
+.mdose{font-size:.76rem;color:var(--muted)}
+.cacts{display:flex;gap:6px}
+.ibtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--brd);background:var(--surf2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;flex-shrink:0}
+.ibtn:hover{border-color:var(--red);color:var(--red)}
+.ibtn.ebtn:hover{border-color:var(--cyan);color:var(--cyan)}
+.mtimes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tchip{padding:4px 10px;border-radius:6px;font-size:.76rem;font-weight:500;background:var(--surf2);border:1px solid var(--brd);display:flex;align-items:center;gap:5px}
+.tchip.next{border-color:rgba(0,229,255,.4);color:var(--cyan);background:rgba(0,229,255,.06)}
+.tchip.done{border-color:rgba(16,185,129,.4);color:var(--green);background:rgba(16,185,129,.06)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}.dot-c{background:var(--cyan)}.dot-g{background:var(--green)}
+.mcfoot{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--brd)}
+.streak{font-size:.76rem;color:var(--muted)}.streak b{color:var(--amber)}
+.btn-take{padding:7px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--green),#059669);color:#fff;font-family:var(--fb);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-take:hover:not(:disabled){transform:scale(1.05);box-shadow:0 4px 15px rgba(16,185,129,.4)}
+.btn-take:disabled{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Empty */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-ico{font-size:3.5rem;margin-bottom:16px;opacity:.5}
+.empty-title{font-family:var(--fh);font-size:1.2rem;font-weight:700;color:var(--txt);margin-bottom:8px}
+.empty-sub{font-size:.88rem;line-height:1.6}
+
+/* Form */
+.fcard{background:var(--surf);border:1px solid var(--brd);border-radius:var(--radius);padding:32px;max-width:600px}
+.ftitle{font-family:var(--fh);font-size:1.4rem;font-weight:800;margin-bottom:28px}
+.ftitle span{color:var(--cyan)}
+.fg{margin-bottom:22px}
+.flabel{display:block;font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.finput,.ftarea{width:100%;padding:12px 16px;background:var(--surf2);border:1px solid var(--brd);border-radius:10px;color:var(--txt);font-family:var(--fb);font-size:.92rem;outline:none;transition:border-color .2s,box-shadow .2s}
+.finput:focus,.ftarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,229,255,.08)}
+.ftarea{resize:vertical;min-height:80px}
+.trow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.trow .finput{flex:1}
+.btn-rm{width:36px;height:36px;border-radius:8px;border:1px solid var(--brd);background:var(--surf2);color:var(--muted);cursor:pointer;font-size:16px;transition:all .2s;flex-shrink:0}
+.btn-rm:hover{border-color:var(--red);color:var(--red)}
+.btn-at{padding:9px 16px;border-radius:9px;border:1px dashed var(--brd);background:transparent;color:var(--cyan);font-family:var(--fb);font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;margin-top:10px;display:inline-flex;align-items:center;gap:6px}
+.btn-at:hover{border-color:var(--cyan);background:rgba(0,229,255,.06)}
+.egrid{display:flex;flex-wrap:wrap;gap:8px}
+.eopt{width:40px;height:40px;border-radius:10px;border:1px solid var(--brd);background:var(--surf2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s;user-select:none}
+.eopt.sel{border-color:var(--cyan);background:rgba(0,229,255,.1);box-shadow:0 0 0 2px rgba(0,229,255,.2);transform:scale(1.1)}
+.eopt:hover:not(.sel){transform:scale(1.05)}
+.cgrid{display:flex;gap:8px;flex-wrap:wrap}
+.cdot{width:32px;height:32px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.cdot.sel{border-color:#fff;transform:scale(1.15)}
+.factions{display:flex;gap:12px;margin-top:28px}
+.btn-primary{padding:13px 28px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--cyan),#0284c7);color:#0a0f1e;font-family:var(--fh);font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,229,255,.35)}
+.btn-sec{padding:13px 22px;border-radius:10px;border:1px solid var(--brd);background:transparent;color:var(--txt);font-family:var(--fb);font-size:.88rem;cursor:pointer;transition:all .2s}
+.btn-sec:hover{border-color:var(--muted);background:var(--surf2)}
+
+/* History */
+.frow{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.fbtn{padding:7px 16px;border-radius:8px;border:1px solid var(--brd);background:var(--surf2);color:var(--muted);font-family:var(--fb);font-size:.8rem;cursor:pointer;transition:all .2s}
+.fbtn.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.08)}
+.fbtn:hover:not(.on){color:var(--txt)}
+.hlist{display:flex;flex-direction:column;gap:10px}
+.hitem{background:var(--surf);border:1px solid var(--brd);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;animation:ci .3s ease}
+.hitem.t-rec{border-left:3px solid var(--green)}.hitem.m-rec{border-left:3px solid var(--red)}
+.hinfo{flex:1}.hname{font-weight:600;font-size:.9rem;margin-bottom:2px}.hdetail{font-size:.78rem;color:var(--muted)}
+.hbadge{font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.hbadge.taken{background:rgba(16,185,129,.12);color:var(--green)}.hbadge.missed{background:rgba(239,68,68,.12);color:var(--red)}
+.htime{font-size:.78rem;color:var(--muted);text-align:right;min-width:70px}
+
+/* Banners */
+.nbanner{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.nbanner.gone{display:none}
+.ntext{flex:1;font-size:.85rem}.ntext strong{color:var(--amber)}
+.btn-notif{padding:8px 16px;border-radius:8px;border:none;background:var(--amber);color:#1a1200;font-family:var(--fb);font-size:.8rem;font-weight:700;cursor:pointer;transition:transform .2s;white-space:nowrap}
+.btn-notif:hover{transform:scale(1.05)}
+.ebar{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:.85rem;color:var(--red);display:none}
+.ebar.show{display:block}
+
+/* Toast */
+.twrap{position:fixed;top:20px;right:20px;z-index:9990;display:flex;flex-direction:column;gap:10px}
+.toast{background:var(--surf);border:1px solid var(--brd);border-radius:12px;padding:14px 18px;min-width:300px;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.5);display:flex;align-items:flex-start;gap:12px;position:relative;overflow:hidden;animation:tIn .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes tIn{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:translateX(0)}}
+.toast.out{animation:tOut .3s ease forwards}@keyframes tOut{to{opacity:0;transform:translateX(80px)}}
+.toast::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--cyan)}
+.toast.warn::before{background:var(--amber)}.toast.ok::before{background:var(--green)}.toast.err::before{background:var(--red)}
+.tico{font-size:20px;flex-shrink:0;margin-top:1px}.tbody{flex:1;min-width:0}
+.ttitle{font-weight:700;font-size:.88rem;font-family:var(--fh);margin-bottom:2px}
+.tmsg{font-size:.78rem;color:var(--muted);line-height:1.4;word-break:break-word}
+.tx{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0}.tx:hover{color:var(--txt)}
+.spin-s{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:640px){
+  header{flex-direction:column;gap:12px}.hright{flex-wrap:wrap;justify-content:center}
+  .nav{width:100%;overflow-x:auto}.fcard{padding:20px}
+  .stats{grid-template-columns:1fr 1fr}.mgrid{grid-template-columns:1fr}
+  .drop{right:auto;left:0;min-width:200px}
 }
 </style>
-
-
-<!-- ============================================================
-  ADD THIS SCRIPT to your existing <script> block in index.html
-  Handles: showing user info in header + logout button
-============================================================ -->
-<script>
-// ── Load user info into header ─────────────────────────────────
-(function loadUserInfo() {
-  const raw = localStorage.getItem('ms_user');
-  if (!raw) return;
-
-  try {
-    const user = JSON.parse(raw);
-
-    // Set name
-    const nameEl = document.getElementById('userName');
-    if (nameEl) nameEl.textContent = user.name;
-
-    // Set email
-    const emailEl = document.getElementById('userEmail');
-    if (emailEl) emailEl.textContent = user.email;
-
-    // Set avatar initial
-    const avatarEl = document.getElementById('userAvatar');
-    if (avatarEl) avatarEl.textContent = user.name.charAt(0).toUpperCase();
-
-  } catch(e) {}
-})();
-
-// ── Logout button ──────────────────────────────────────────────
-const logoutBtn = document.getElementById('btnLogout');
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', () => {
-    if (!confirm('Sign out of MedSync?')) return;
-    localStorage.removeItem('ms_token');
-    localStorage.removeItem('ms_user');
-    window.location.href = '/login.html';
-  });
-}
-
-// ── Attach token to every API call ────────────────────────────
-// Update your existing apiFetch() function to include the token:
-async function apiFetch(path, opts = {}) {
-  const token = localStorage.getItem('ms_token');
-  try {
-    const res  = await fetch('/api' + path, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
-      },
-      ...opts,
-    });
-
-    // If token expired mid-session, redirect to login
-    if (res.status === 401) {
-      localStorage.removeItem('ms_token');
-      localStorage.removeItem('ms_user');
-      window.location.href = '/login.html';
-      return { success: false };
-    }
-
-    const json = await res.json();
-    document.getElementById('errBar')?.classList.remove('show');
-    return json;
-
-  } catch(e) {
-    document.getElementById('errBar')?.classList.add('show');
-    console.error('[MedSync API]', e);
-    return { success: false, data: null, error: e.message };
-  }
-}
-</script>
 </head>
 <body>
+<div class="blob blob1"></div><div class="blob blob2"></div>
+<div class="twrap" id="tw"></div>
 
-<div class="blob blob1"></div>
-<div class="blob blob2"></div>
-<div class="toast-wrap" id="toastWrap"></div>
+<!-- Logout confirm modal -->
+<div class="modal-bg" id="logoutModal">
+  <div class="modal-box">
+    <div class="modal-ico">🚪</div>
+    <div class="modal-title">Sign out of MedSync?</div>
+    <div class="modal-msg">You'll need to sign in again to view your medicines and reminders. All your data stays safe.</div>
+    <div class="modal-acts">
+      <button class="btn-cancel" id="cancelLogout">Stay signed in</button>
+      <button class="btn-lo" id="confirmLogout">🚪 Yes, Sign Out</button>
+    </div>
+  </div>
+</div>
 
-<div class="app-shell">
+<!-- Logout animation -->
+<div class="lo-overlay" id="loOverlay">
+  <div style="font-size:3rem">👋</div>
+  <div style="font-family:var(--fh);font-size:1.8rem;font-weight:800">See you soon!</div>
+  <div style="font-size:.9rem;color:var(--muted)">Signing you out safely…</div>
+  <div class="lo-spinner"></div>
+</div>
 
-  <!-- Header -->
+<div class="shell">
   <header>
     <div class="logo">
-      <div class="logo-icon">💊</div>
+      <div class="logo-ico">💊</div>
       <div>
         <div class="logo-text">Med<span>Sync</span></div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:1px">Smart Medicine Reminder</div>
+        <div class="logo-sub">Smart Medicine Reminder</div>
       </div>
     </div>
-    <div>
-      <div class="clock" id="clock">--:--</div>
-      <div class="date-str" id="dateStr"></div>
+
+    <div class="hright">
+      <div>
+        <div class="clock" id="clock">--:--</div>
+        <div class="dates" id="dates"></div>
+      </div>
+
+      <!-- User avatar + dropdown -->
+      <div class="umenu" id="umenu">
+        <div class="ubtn" id="ubtn">
+          <div class="uavatar" id="hAvatar">A</div>
+          <div class="uinfo">
+            <div class="uname" id="hName">Loading…</div>
+            <div class="uemail" id="hEmail"></div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+
+        <div class="drop" id="drop">
+          <div class="drop-head">
+            <div class="dh-av" id="dhAv">A</div>
+            <div class="dh-name" id="dhName">User</div>
+            <div class="dh-email" id="dhEmail">user@email.com</div>
+            <div class="dh-badge">✅ Signed in</div>
+          </div>
+          <div class="drop-sec">
+            <button class="ditem" id="dDash"><div class="dico">📋</div>Dashboard</button>
+            <button class="ditem" id="dAdd"><div class="dico">➕</div>Add Medicine</button>
+            <button class="ditem" id="dHist"><div class="dico">📜</div>History</button>
+          </div>
+          <div class="ddiv"></div>
+          <div class="drop-sec">
+            <button class="ditem danger" id="logoutBtn">
+              <div class="dico">🚪</div>Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- Notification permission banner -->
-  <div class="notif-banner" id="notifBanner">
+  <div class="nbanner" id="nb">
     <span style="font-size:22px">🔔</span>
-    <div class="notif-text"><strong>Enable notifications</strong> to get medicine reminders even when you switch tabs.</div>
-    <button class="btn-notif" id="btnEnableNotif">Enable</button>
+    <div class="ntext"><strong>Enable notifications</strong> to get reminders on time.</div>
+    <button class="btn-notif" id="btnNotif">Enable</button>
+  </div>
+  <div class="ebar" id="eb">⚠️ Cannot reach server. Make sure the backend is running.</div>
+
+  <div class="nav">
+    <button class="ntab on" data-tab="dashboard">📋 Dashboard</button>
+    <button class="ntab" data-tab="add">➕ Add Medicine</button>
+    <button class="ntab" data-tab="history">📜 History</button>
   </div>
 
-  <!-- API error bar -->
-  <div class="err-bar" id="errBar">
-    ⚠️ Cannot reach backend. Make sure <strong>npm run dev</strong> is running and refresh this page.
-  </div>
-
-  <!-- Navigation -->
-  <div class="nav-tabs">
-    <button class="nav-tab active" data-tab="dashboard">📋 Dashboard</button>
-    <button class="nav-tab" data-tab="add">➕ Add Medicine</button>
-    <button class="nav-tab" data-tab="history">📜 History</button>
-  </div>
-
-  <!-- ── DASHBOARD ── -->
-  <div class="panel active" id="panel-dashboard">
-    <div class="stats-row">
-      <div class="stat-card c1"><div class="stat-label">Total Medicines</div><div class="stat-value" id="stTotal">–</div></div>
-      <div class="stat-card c2"><div class="stat-label">Taken Today</div><div class="stat-value" id="stTaken">–</div></div>
-      <div class="stat-card c3"><div class="stat-label">Pending Today</div><div class="stat-value" id="stPending">–</div></div>
-      <div class="stat-card c4"><div class="stat-label">Best Streak 🔥</div><div class="stat-value" id="stStreak">–</div></div>
+  <!-- Dashboard -->
+  <div class="panel on" id="panel-dashboard">
+    <div class="stats">
+      <div class="scard s1"><div class="slabel">Total Medicines</div><div class="sval" id="stTotal">–</div></div>
+      <div class="scard s2"><div class="slabel">Taken Today</div><div class="sval" id="stTaken">–</div></div>
+      <div class="scard s3"><div class="slabel">Pending Today</div><div class="sval" id="stPend">–</div></div>
+      <div class="scard s4"><div class="slabel">Best Streak 🔥</div><div class="sval" id="stStreak">–</div></div>
     </div>
-    <div class="section-header">
-      <div class="section-title">Today's Medicines</div>
+    <div class="sh">
+      <div class="stitle">Today's Medicines</div>
       <span class="badge" id="medBadge">Loading…</span>
     </div>
-    <div class="med-grid" id="medGrid">
-      <div class="empty-state">
-        <div class="empty-icon">⏳</div>
-        <div class="empty-title">Loading…</div>
-        <div class="empty-sub">Fetching your medicines from the server.</div>
-      </div>
+    <div class="mgrid" id="mgrid">
+      <div class="empty"><div class="empty-ico">⏳</div><div class="empty-title">Loading…</div></div>
     </div>
   </div>
 
-  <!-- ── ADD / EDIT MEDICINE ── -->
+  <!-- Add Medicine -->
   <div class="panel" id="panel-add">
-    <div class="form-card">
-      <div class="form-title" id="formTitle">Add <span>New Medicine</span></div>
-
-      <div class="form-group">
-        <label class="form-label" for="fName">Medicine Name *</label>
-        <input class="form-input" type="text" id="fName" placeholder="e.g. Metformin, Aspirin…"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="fDosage">Dosage *</label>
-        <input class="form-input" type="text" id="fDosage" placeholder="e.g. 500mg, 1 tablet…"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Pick an Icon</label>
-        <div class="emoji-grid" id="emojiGrid"></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Card Colour</label>
-        <div class="color-grid" id="colorGrid"></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Reminder Times *</label>
-        <div class="times-builder" id="timesBuilder"></div>
-        <button class="btn-add-time" id="btnAddTime">＋ Add another time</button>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="fNotes">Notes (optional)</label>
-        <textarea class="form-textarea" id="fNotes" placeholder="e.g. Take after meals, avoid dairy…"></textarea>
-      </div>
-
-      <div class="form-actions">
+    <div class="fcard">
+      <div class="ftitle" id="ftitle">Add <span>New Medicine</span></div>
+      <div class="fg"><label class="flabel">Medicine Name *</label><input class="finput" type="text" id="fName" placeholder="e.g. Metformin…"/></div>
+      <div class="fg"><label class="flabel">Dosage *</label><input class="finput" type="text" id="fDose" placeholder="e.g. 500mg…"/></div>
+      <div class="fg"><label class="flabel">Pick an Icon</label><div class="egrid" id="egrid"></div></div>
+      <div class="fg"><label class="flabel">Card Colour</label><div class="cgrid" id="cgrid"></div></div>
+      <div class="fg"><label class="flabel">Reminder Times *</label><div id="tbuilder"></div><button class="btn-at" id="btnAt">＋ Add another time</button></div>
+      <div class="fg"><label class="flabel">Notes (optional)</label><textarea class="ftarea" id="fNotes" placeholder="e.g. Take after meals…"></textarea></div>
+      <div class="factions">
         <button class="btn-primary" id="btnSave">💾 Save Medicine</button>
-        <button class="btn-secondary" id="btnCancel">Cancel</button>
+        <button class="btn-sec" id="btnCancel">Cancel</button>
       </div>
     </div>
   </div>
 
-  <!-- ── HISTORY ── -->
+  <!-- History -->
   <div class="panel" id="panel-history">
-    <div class="section-header">
-      <div class="section-title">Medicine History</div>
-      <span class="badge" id="histBadge">0 records</span>
+    <div class="sh"><div class="stitle">Medicine History</div><span class="badge" id="hBadge">0 records</span></div>
+    <div class="frow">
+      <button class="fbtn on" data-f="all">All</button>
+      <button class="fbtn" data-f="taken">✅ Taken</button>
+      <button class="fbtn" data-f="missed">❌ Missed</button>
+      <button class="fbtn" data-f="today">📅 Today</button>
     </div>
-    <div class="filter-row">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="taken">✅ Taken</button>
-      <button class="filter-btn" data-filter="missed">❌ Missed</button>
-      <button class="filter-btn" data-filter="today">📅 Today</button>
-    </div>
-    <div class="history-list" id="histList">
-      <div class="empty-state">
-        <div class="empty-icon">📜</div>
-        <div class="empty-title">No history yet</div>
-        <div class="empty-sub">Take your first dose to see records here.</div>
-      </div>
+    <div class="hlist" id="hlist">
+      <div class="empty"><div class="empty-ico">📜</div><div class="empty-title">No history yet</div></div>
     </div>
   </div>
-
-</div><!-- /app-shell -->
+</div>
 
 <script>
-/* ================================================================
-   MedSync Frontend  —  all logic in one self-contained script
-   Talks to Express backend at /api/*
-   ================================================================ */
+// ── Auth guard ─────────────────────────────────────────────────
+(function(){
+  const t=localStorage.getItem('ms_token');
+  if(!t){window.location.href='/login.html';return;}
+  fetch('/api/auth/me',{headers:{'Authorization':'Bearer '+t}})
+    .then(r=>r.json()).then(d=>{
+      if(!d.success){localStorage.removeItem('ms_token');localStorage.removeItem('ms_user');window.location.href='/login.html';}
+    }).catch(()=>{});
+})();
 
-// ── Constants ───────────────────────────────────────────────────
-const EMOJIS = ['💊','🩺','💉','🫀','🧠','🦷','👁️','🧪','🌡️','💪','🍃','⚕️','🏥','🩹','🔬','🫁'];
-const COLORS  = [
-  {v:'rgba(0,229,255,0.12)',  b:'rgba(0,229,255,0.4)'},
-  {v:'rgba(124,58,237,0.12)', b:'rgba(124,58,237,0.4)'},
-  {v:'rgba(16,185,129,0.12)', b:'rgba(16,185,129,0.4)'},
-  {v:'rgba(245,158,11,0.12)', b:'rgba(245,158,11,0.4)'},
-  {v:'rgba(239,68,68,0.12)',  b:'rgba(239,68,68,0.4)'},
-  {v:'rgba(59,130,246,0.12)', b:'rgba(59,130,246,0.4)'},
-  {v:'rgba(236,72,153,0.12)', b:'rgba(236,72,153,0.4)'},
-  {v:'rgba(234,179,8,0.12)',  b:'rgba(234,179,8,0.4)'},
+const EMOJIS=['💊','🩺','💉','🫀','🧠','🦷','👁️','🧪','🌡️','💪','🍃','⚕️','🏥','🩹','🔬','🫁'];
+const COLORS=[
+  {v:'rgba(0,229,255,0.12)',b:'rgba(0,229,255,0.4)'},{v:'rgba(124,58,237,0.12)',b:'rgba(124,58,237,0.4)'},
+  {v:'rgba(16,185,129,0.12)',b:'rgba(16,185,129,0.4)'},{v:'rgba(245,158,11,0.12)',b:'rgba(245,158,11,0.4)'},
+  {v:'rgba(239,68,68,0.12)',b:'rgba(239,68,68,0.4)'},{v:'rgba(59,130,246,0.12)',b:'rgba(59,130,246,0.4)'},
+  {v:'rgba(236,72,153,0.12)',b:'rgba(236,72,153,0.4)'},{v:'rgba(234,179,8,0.12)',b:'rgba(234,179,8,0.4)'},
 ];
 
-// ── App state ───────────────────────────────────────────────────
-let medicines   = [];           // full list from server
-let takenToday  = {};           // { id: ['08:00', …] }
-let editingId   = null;         // null = add mode, string = edit mode
-let selEmoji    = '💊';
-let selColor    = COLORS[0].v;
-let histFilter  = 'all';
+let medicines=[],takenToday={},editingId=null,selEmoji='💊',selColor=COLORS[0].v,histFilter='all';
+const $=id=>document.getElementById(id);
+const esc=s=>{const d=document.createElement('div');d.appendChild(document.createTextNode(String(s??'')));return d.innerHTML;};
+const fmt12=t=>{if(!t)return'';const[h,m]=t.split(':').map(Number);return`${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;};
+const todayISO=()=>new Date().toISOString().slice(0,10);
 
-// ── Helpers: DOM ────────────────────────────────────────────────
-const $  = id => document.getElementById(id);
-const esc = s => {
-  const d = document.createElement('div');
-  d.appendChild(document.createTextNode(String(s ?? '')));
-  return d.innerHTML;
-};
-const fmt12 = t => {
-  if (!t) return '';
-  const [h,m] = t.split(':').map(Number);
-  return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
-};
-const todayISO = () => new Date().toISOString().slice(0,10);
-
-// ── Helpers: API ────────────────────────────────────────────────
-async function apiFetch(path, opts = {}) {
-  try {
-    const res  = await fetch('/api' + path, {
-      headers: {'Content-Type':'application/json'},
-      ...opts,
-    });
-    const json = await res.json();
-    $('errBar').classList.remove('show');
-    return json;
-  } catch(e) {
-    $('errBar').classList.add('show');
-    console.error('[MedSync API]', e);
-    return {success:false, data:null, error: e.message};
-  }
+// API
+async function apiFetch(path,opts={}){
+  const tk=localStorage.getItem('ms_token');
+  try{
+    const res=await fetch('/api'+path,{headers:{'Content-Type':'application/json',...(tk?{'Authorization':'Bearer '+tk}:{})}, ...opts});
+    if(res.status===401){doLogout(true);return{success:false};}
+    $('eb').classList.remove('show');return res.json();
+  }catch(e){$('eb').classList.add('show');return{success:false,data:null};}
 }
 
-// ── Clock ────────────────────────────────────────────────────────
-function tickClock() {
-  const n = new Date();
-  $('clock').textContent   = n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
-  $('dateStr').textContent = n.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-}
-setInterval(tickClock, 1000);
-tickClock();
+// Clock
+function tick(){const n=new Date();$('clock').textContent=n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});$('dates').textContent=n.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});}
+setInterval(tick,1000);tick();
 
-// ── Toasts ───────────────────────────────────────────────────────
-function toast(icon, title, msg, type = '') {
-  const wrap = $('toastWrap');
-  const el   = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `
-    <span class="toast-ico">${icon}</span>
-    <div class="toast-body">
-      <div class="toast-title">${esc(title)}</div>
-      <div class="toast-msg">${esc(msg)}</div>
-    </div>
-    <button class="toast-x" aria-label="close">✕</button>`;
-  el.querySelector('.toast-x').addEventListener('click', () => dismiss(el));
-  wrap.appendChild(el);
-  setTimeout(() => dismiss(el), 5000);
+// Load user info
+function loadUserInfo(){
+  const raw=localStorage.getItem('ms_user');if(!raw)return;
+  try{
+    const u=JSON.parse(raw);
+    const ini=(u.name||'U').charAt(0).toUpperCase();
+    $('hAvatar').textContent=ini;$('hName').textContent=u.name||'User';$('hEmail').textContent=u.email||'';
+    $('dhAv').textContent=ini;$('dhName').textContent=u.name||'User';$('dhEmail').textContent=u.email||'';
+  }catch(e){}
 }
-function dismiss(el) {
-  if (!el.parentElement) return;
-  el.classList.add('out');
-  setTimeout(() => el.remove(), 320);
-}
+loadUserInfo();
 
-// ── Notifications ────────────────────────────────────────────────
-function updateNotifBanner() {
-  if (Notification.permission === 'granted') $('notifBanner').classList.add('gone');
-}
-$('btnEnableNotif').addEventListener('click', () => {
-  Notification.requestPermission().then(p => {
-    if (p === 'granted') {
-      $('notifBanner').classList.add('gone');
-      toast('🔔','Notifications on','You will get medicine reminders on time.','success');
-    } else {
-      toast('⚠️','Permission denied','Enable notifications in your browser settings.','warn');
-    }
-  });
-});
-function pushNotif(title, body) {
-  if (Notification.permission === 'granted') new Notification(title, {body});
-}
+// Dropdown toggle
+const umenu=$('umenu');
+$('ubtn').addEventListener('click',e=>{e.stopPropagation();umenu.classList.toggle('open');});
+document.addEventListener('click',e=>{if(!umenu.contains(e.target))umenu.classList.remove('open');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')umenu.classList.remove('open');});
 
-// ── Tab switching ─────────────────────────────────────────────────
-document.querySelectorAll('.nav-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    $('panel-' + tab).classList.add('active');
-    if (tab === 'dashboard') loadDashboard();
-    if (tab === 'history')   loadHistory();
-    if (tab === 'add' && !editingId) resetForm();
-  });
+// Dropdown nav links
+$('dDash').addEventListener('click',()=>goTab('dashboard'));
+$('dAdd').addEventListener('click',()=>goTab('add'));
+$('dHist').addEventListener('click',()=>goTab('history'));
+
+// ══════════════════════════════════════════════════════════════
+//  LOGOUT SYSTEM
+// ══════════════════════════════════════════════════════════════
+const logoutModal=$('logoutModal');
+
+// Step 1: Click "Sign Out" in dropdown → open confirm modal
+$('logoutBtn').addEventListener('click',()=>{
+  umenu.classList.remove('open');  // close dropdown
+  logoutModal.classList.add('show'); // open modal
 });
 
-function goTab(name) {
-  const btn = document.querySelector(`.nav-tab[data-tab="${name}"]`);
-  if (btn) btn.click();
-}
+// Step 2a: Cancel → close modal, stay on page
+$('cancelLogout').addEventListener('click',()=>logoutModal.classList.remove('show'));
 
-// ── DASHBOARD ─────────────────────────────────────────────────────
-async function loadDashboard() {
-  const res = await apiFetch('/medicines');
-  medicines = (res.data || []).filter(m => m.active !== false);
-  renderCards();
-}
+// Close modal on background click
+logoutModal.addEventListener('click',e=>{if(e.target===logoutModal)logoutModal.classList.remove('show');});
 
-function renderCards() {
-  // Stats
-  const takenCount   = medicines.filter(m => (takenToday[m.id]||[]).length >= m.times.length && m.times.length > 0).length;
-  const pendingCount = medicines.filter(m => (takenToday[m.id]||[]).length < m.times.length).length;
-  const bestStreak   = medicines.reduce((mx,m) => Math.max(mx, m.streak||0), 0);
+// Close modal on Escape key
+document.addEventListener('keydown',e=>{if(e.key==='Escape')logoutModal.classList.remove('show');});
 
-  $('stTotal').textContent   = medicines.length;
-  $('stTaken').textContent   = takenCount;
-  $('stPending').textContent = pendingCount;
-  $('stStreak').textContent  = bestStreak;
-  $('medBadge').textContent  = medicines.length + ' medicine' + (medicines.length !== 1 ? 's' : '');
+// Step 2b: Confirm → run logout
+$('confirmLogout').addEventListener('click',()=>{
+  logoutModal.classList.remove('show');
+  doLogout(false);
+});
 
-  const grid = $('medGrid');
-  if (!medicines.length) {
-    grid.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">💊</div>
-      <div class="empty-title">No medicines yet</div>
-      <div class="empty-sub">Click <strong>Add Medicine</strong> tab to get started.</div>
-    </div>`;
+// The actual logout function
+function doLogout(silent=false){
+  // Clear ALL session data from browser storage
+  localStorage.removeItem('ms_token');
+  localStorage.removeItem('ms_user');
+  localStorage.removeItem('ms_taken_'+todayISO());
+
+  if(silent){
+    // Token expired mid-session → redirect immediately without animation
+    window.location.href='/login.html';
     return;
   }
+  // Show friendly goodbye animation, then redirect after 2 seconds
+  $('loOverlay').classList.add('show');
+  setTimeout(()=>{window.location.href='/login.html';},2000);
+}
+// ══════════════════════════════════════════════════════════════
 
-  grid.innerHTML = '';
-  const now     = new Date();
-  const nowMins = now.getHours()*60 + now.getMinutes();
+// Notifications
+function checkNB(){if(Notification.permission==='granted')$('nb').classList.add('gone');}
+$('btnNotif').addEventListener('click',()=>{
+  Notification.requestPermission().then(p=>{if(p==='granted'){$('nb').classList.add('gone');toast('🔔','Notifications on','You will get medicine reminders on time.','ok');}});
+});
+checkNB();
 
-  medicines.forEach(med => {
-    const taken    = takenToday[med.id] || [];
-    const allDone  = med.times.length > 0 && taken.length >= med.times.length;
-    const colorObj = COLORS.find(c => c.v === med.color) || COLORS[0];
+// Toasts
+function toast(ico,title,msg,type=''){
+  const tw=$('tw'),el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span class="tico">${ico}</span><div class="tbody"><div class="ttitle">${esc(title)}</div><div class="tmsg">${esc(msg)}</div></div><button class="tx">✕</button>`;
+  el.querySelector('.tx').addEventListener('click',()=>dismiss(el));
+  tw.appendChild(el);setTimeout(()=>dismiss(el),5000);
+}
+function dismiss(el){if(!el.parentElement)return;el.classList.add('out');setTimeout(()=>el.remove(),320);}
 
-    // Build time chips
-    let chipsHTML = med.times.map(t => {
-      const [h,m]   = t.split(':').map(Number);
-      const isTaken = taken.includes(t);
-      const isNext  = !allDone && !isTaken && (h*60+m) > nowMins;
-      let cls = '';
-      if (isTaken) cls = 'is-taken';
-      else if (isNext) cls = 'is-next';
-      return `<span class="time-chip ${cls}">
-        <span class="dot ${isTaken?'dot-green':'dot-cyan'}"></span>
-        ${fmt12(t)}${isTaken?' ✓':''}
-      </span>`;
-    }).join('') || '<span style="font-size:0.8rem;color:var(--muted)">No times set</span>';
+// Tab navigation
+function goTab(name){
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelector(`.ntab[data-tab="${name}"]`).classList.add('on');
+  $('panel-'+name).classList.add('on');
+  umenu.classList.remove('open');
+  if(name==='dashboard')loadDashboard();
+  if(name==='history')loadHistory();
+  if(name==='add'&&!editingId)resetForm();
+}
+document.querySelectorAll('.ntab').forEach(btn=>btn.addEventListener('click',()=>goTab(btn.dataset.tab)));
 
-    // Card element
-    const card = document.createElement('div');
-    card.className = 'med-card' + (allDone ? ' done' : '');
-    card.style.cssText = `
-      border-color:${allDone ? 'rgba(16,185,129,0.35)' : colorObj.b};
-      background:linear-gradient(135deg,var(--surface),${med.color})`;
-    card.innerHTML = `
-      <div class="med-card-header">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div class="med-icon" style="background:${med.color};border:1px solid ${colorObj.b}">${esc(med.emoji)}</div>
-          <div>
-            <div class="med-name">${esc(med.name)}</div>
-            <div class="med-dosage">${esc(med.dosage)}${med.notes ? ' · ' + esc(med.notes.slice(0,28)) + (med.notes.length>28?'…':'') : ''}</div>
-          </div>
-        </div>
-        <div class="card-actions">
-          <button class="btn-icon edit-btn" title="Edit medicine" data-id="${med.id}">✏️</button>
-          <button class="btn-icon del-btn"  title="Delete medicine" data-id="${med.id}">🗑️</button>
-        </div>
-      </div>
-      <div class="med-times">${chipsHTML}</div>
-      <div class="med-card-footer">
-        <div class="streak">🔥 Streak: <b>${med.streak||0}</b> days</div>
-        <button class="btn-take take-btn" data-id="${med.id}" ${allDone?'disabled':''}>
-          ${allDone ? '✓ All Taken' : '✓ Mark Taken'}
-        </button>
-      </div>`;
-
-    // ── Attach events DIRECTLY to the elements — no inline onclick ──
-    card.querySelector('.edit-btn').addEventListener('click', () => startEdit(med.id));
-    card.querySelector('.del-btn').addEventListener('click',  () => confirmDelete(med.id));
-    if (!allDone) {
-      card.querySelector('.take-btn').addEventListener('click', () => markTaken(med.id));
-    }
-
+// Dashboard
+async function loadDashboard(){
+  const res=await apiFetch('/medicines');
+  medicines=(res.data||[]).filter(m=>m.active!==false);
+  renderCards();
+}
+function renderCards(){
+  const tCnt=medicines.filter(m=>(takenToday[m.id]||[]).length>=m.times.length&&m.times.length>0).length;
+  const pCnt=medicines.filter(m=>(takenToday[m.id]||[]).length<m.times.length).length;
+  const bStr=medicines.reduce((mx,m)=>Math.max(mx,m.streak||0),0);
+  $('stTotal').textContent=medicines.length;$('stTaken').textContent=tCnt;$('stPend').textContent=pCnt;$('stStreak').textContent=bStr;
+  $('medBadge').textContent=medicines.length+' medicine'+(medicines.length!==1?'s':'');
+  const grid=$('mgrid');
+  if(!medicines.length){grid.innerHTML=`<div class="empty"><div class="empty-ico">💊</div><div class="empty-title">No medicines yet</div><div class="empty-sub">Click <strong>Add Medicine</strong> tab to get started.</div></div>`;return;}
+  grid.innerHTML='';
+  const now=new Date(),nowM=now.getHours()*60+now.getMinutes();
+  medicines.forEach(med=>{
+    const taken=takenToday[med.id]||[];
+    const allDone=med.times.length>0&&taken.length>=med.times.length;
+    const co=COLORS.find(c=>c.v===med.color)||COLORS[0];
+    const chips=med.times.map(t=>{const[h,m]=t.split(':').map(Number);const iT=taken.includes(t);const isN=!allDone&&!iT&&(h*60+m)>nowM;return`<span class="tchip ${iT?'done':isN?'next':''}"><span class="dot ${iT?'dot-g':'dot-c'}"></span>${fmt12(t)}${iT?' ✓':''}</span>`;}).join('')||'<span style="font-size:.8rem;color:var(--muted)">No times set</span>';
+    const card=document.createElement('div');card.className='mcard';
+    card.style.cssText=`border-color:${allDone?'rgba(16,185,129,0.3)':co.b};background:linear-gradient(135deg,var(--surf),${med.color})`;
+    card.innerHTML=`<div class="mchead"><div style="display:flex;align-items:center;gap:12px"><div class="mico" style="background:${med.color};border:1px solid ${co.b}">${esc(med.emoji)}</div><div><div class="mname">${esc(med.name)}</div><div class="mdose">${esc(med.dosage)}</div></div></div><div class="cacts"><button class="ibtn ebtn" title="Edit">✏️</button><button class="ibtn dbtn" title="Delete">🗑️</button></div></div><div class="mtimes">${chips}</div><div class="mcfoot"><div class="streak">🔥 Streak: <b>${med.streak||0}</b> days</div><button class="btn-take tbtn" ${allDone?'disabled':''}>${allDone?'✓ All Taken':'✓ Mark Taken'}</button></div>`;
+    card.querySelector('.ebtn').addEventListener('click',()=>startEdit(med.id));
+    card.querySelector('.dbtn').addEventListener('click',()=>confirmDel(med.id));
+    if(!allDone)card.querySelector('.tbtn').addEventListener('click',()=>markTaken(med.id));
     grid.appendChild(card);
   });
 }
 
-// ── Mark Taken ────────────────────────────────────────────────────
-async function markTaken(medId) {
-  const med = medicines.find(m => m.id === medId);
-  if (!med) return;
-
-  // Disable the button immediately to prevent double-clicks
-  const btn = document.querySelector(`.take-btn[data-id="${medId}"]`);
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Taking…'; }
-
-  if (!takenToday[medId]) takenToday[medId] = [];
-  const nextTime = med.times.find(t => !takenToday[medId].includes(t))
-    || new Date().toTimeString().slice(0,5);
-
-  const res = await apiFetch(`/medicines/${medId}/take`, {
-    method: 'POST',
-    body:   JSON.stringify({scheduledTime: nextTime}),
-  });
-
-  if (res.success) {
-    takenToday[medId].push(nextTime);
-    med.streak = (med.streak||0) + 1;
-    renderCards();
-    toast(med.emoji, 'Dose recorded!', `${med.name} taken at ${fmt12(nextTime)}.`, 'success');
-    pushNotif('✅ Dose recorded', `${med.name} (${med.dosage}) — ${fmt12(nextTime)}`);
-  } else {
-    toast('❌','Error', res.error || 'Could not record dose.', 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '✓ Mark Taken'; }
-  }
+async function markTaken(id){
+  const med=medicines.find(m=>m.id===id);if(!med)return;
+  if(!takenToday[id])takenToday[id]=[];
+  const nt=med.times.find(t=>!takenToday[id].includes(t))||new Date().toTimeString().slice(0,5);
+  const res=await apiFetch(`/medicines/${id}/take`,{method:'POST',body:JSON.stringify({scheduledTime:nt})});
+  if(res.success){takenToday[id].push(nt);med.streak=(med.streak||0)+1;renderCards();toast(med.emoji,'Dose recorded!',`${med.name} taken at ${fmt12(nt)}.`,'ok');if(Notification.permission==='granted')new Notification('✅ Dose recorded',{body:`${med.name} — ${fmt12(nt)}`});}
 }
-
-// ── Delete ────────────────────────────────────────────────────────
-async function confirmDelete(medId) {
-  const med = medicines.find(m => m.id === medId);
-  if (!med) return;
-  if (!confirm(`Delete "${med.name}"? This cannot be undone.`)) return;
-
-  const res = await apiFetch(`/medicines/${medId}`, {method:'DELETE'});
-  if (res.success) {
-    medicines = medicines.filter(m => m.id !== medId);
-    delete takenToday[medId];
-    renderCards();
-    toast('🗑️','Deleted', `${med.name} removed from your list.`);
-  } else {
-    toast('❌','Error', res.error || 'Could not delete.', 'error');
-  }
+async function confirmDel(id){
+  const med=medicines.find(m=>m.id===id);if(!med)return;
+  if(!confirm(`Delete "${med.name}"?`))return;
+  const res=await apiFetch(`/medicines/${id}`,{method:'DELETE'});
+  if(res.success){medicines=medicines.filter(m=>m.id!==id);delete takenToday[id];renderCards();toast('🗑️','Deleted',`${med.name} removed.`);}
 }
-
-// ── Edit ──────────────────────────────────────────────────────────
-function startEdit(medId) {
-  const med = medicines.find(m => m.id === medId);
-  if (!med) return;
-  editingId = medId;
-
-  $('fName').value   = med.name;
-  $('fDosage').value = med.dosage;
-  $('fNotes').value  = med.notes || '';
-  $('timesBuilder').innerHTML = '';
-  (med.times.length ? med.times : ['08:00']).forEach(t => addTimeRow(t));
-
-  selEmoji = med.emoji;
-  selColor = med.color || COLORS[0].v;
-  buildEmojiGrid();
-  buildColorGrid();
-  $('formTitle').innerHTML = 'Edit <span>Medicine</span>';
-  goTab('add');
+function startEdit(id){
+  const med=medicines.find(m=>m.id===id);if(!med)return;
+  editingId=id;
+  $('fName').value=med.name;$('fDose').value=med.dosage;$('fNotes').value=med.notes||'';
+  $('tbuilder').innerHTML='';(med.times.length?med.times:['08:00']).forEach(t=>addTimeRow(t));
+  selEmoji=med.emoji;selColor=med.color||COLORS[0].v;buildEmojiGrid();buildColorGrid();
+  $('ftitle').innerHTML='Edit <span>Medicine</span>';goTab('add');
 }
-
-// ── Form helpers ──────────────────────────────────────────────────
-function buildEmojiGrid() {
-  const g = $('emojiGrid');
-  g.innerHTML = '';
-  EMOJIS.forEach(e => {
-    const el = document.createElement('div');
-    el.className = 'emoji-opt' + (e === selEmoji ? ' sel' : '');
-    el.textContent = e;
-    el.addEventListener('click', () => {
-      g.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('sel'));
-      el.classList.add('sel');
-      selEmoji = e;
-    });
-    g.appendChild(el);
-  });
-}
-
-function buildColorGrid() {
-  const g = $('colorGrid');
-  g.innerHTML = '';
-  COLORS.forEach(c => {
-    const el = document.createElement('div');
-    el.className  = 'color-dot' + (c.v === selColor ? ' sel' : '');
-    el.style.background = c.b;
-    el.title = c.b;
-    el.addEventListener('click', () => {
-      g.querySelectorAll('.color-dot').forEach(x => x.classList.remove('sel'));
-      el.classList.add('sel');
-      selColor = c.v;
-    });
-    g.appendChild(el);
-  });
-}
-
-function addTimeRow(val = '') {
-  const row = document.createElement('div');
-  row.className = 'time-row';
-  const inp = document.createElement('input');
-  inp.type  = 'time';
-  inp.className = 'form-input';
-  inp.value = val;
-  const rm  = document.createElement('button');
-  rm.className   = 'btn-rm-time';
-  rm.textContent = '✕';
-  rm.type        = 'button';
-  rm.addEventListener('click', () => {
-    // Keep at least one time row
-    const rows = $('timesBuilder').querySelectorAll('.time-row');
-    if (rows.length > 1) row.remove();
-    else toast('⚠️','One time required','You need at least one reminder time.','warn');
-  });
-  row.appendChild(inp);
-  row.appendChild(rm);
-  $('timesBuilder').appendChild(row);
-}
-
-function resetForm() {
-  editingId = null;
-  $('fName').value   = '';
-  $('fDosage').value = '';
-  $('fNotes').value  = '';
-  $('timesBuilder').innerHTML = '';
-  addTimeRow('08:00');
-  selEmoji = '💊';
-  selColor = COLORS[0].v;
-  buildEmojiGrid();
-  buildColorGrid();
-  $('formTitle').innerHTML = 'Add <span>New Medicine</span>';
-}
-
-// "Add time" button
-$('btnAddTime').addEventListener('click', () => addTimeRow());
-
-// Cancel button
-$('btnCancel').addEventListener('click', () => {
-  editingId = null;
-  goTab('dashboard');
-});
-
-// Save button
-$('btnSave').addEventListener('click', async () => {
-  const name   = $('fName').value.trim();
-  const dosage = $('fDosage').value.trim();
-  const notes  = $('fNotes').value.trim();
-  const times  = [...$('timesBuilder').querySelectorAll('input[type=time]')]
-    .map(i => i.value).filter(Boolean);
-
-  // Validation
-  if (!name)         return toast('⚠️','Name required','Please enter a medicine name.','warn');
-  if (!dosage)       return toast('⚠️','Dosage required','Please enter the dosage amount.','warn');
-  if (!times.length) return toast('⚠️','Time required','Add at least one reminder time.','warn');
-
-  const payload = {name, dosage, notes, times, emoji:selEmoji, color:selColor};
-  const btn     = $('btnSave');
-  btn.disabled  = true;
-  btn.innerHTML = '<span class="spinner"></span>Saving…';
-
+function buildEmojiGrid(){const g=$('egrid');g.innerHTML='';EMOJIS.forEach(e=>{const el=document.createElement('div');el.className='eopt'+(e===selEmoji?' sel':'');el.textContent=e;el.addEventListener('click',()=>{g.querySelectorAll('.eopt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selEmoji=e;});g.appendChild(el);});}
+function buildColorGrid(){const g=$('cgrid');g.innerHTML='';COLORS.forEach(c=>{const el=document.createElement('div');el.className='cdot'+(c.v===selColor?' sel':'');el.style.background=c.b;el.addEventListener('click',()=>{g.querySelectorAll('.cdot').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selColor=c.v;});g.appendChild(el);});}
+function addTimeRow(val=''){const row=document.createElement('div');row.className='trow';const inp=document.createElement('input');inp.type='time';inp.className='finput';inp.value=val;const rm=document.createElement('button');rm.className='btn-rm';rm.type='button';rm.textContent='✕';rm.addEventListener('click',()=>{const rows=$('tbuilder').querySelectorAll('.trow');if(rows.length>1)row.remove();else toast('⚠️','Required','Need at least one time.','warn');});row.appendChild(inp);row.appendChild(rm);$('tbuilder').appendChild(row);}
+function resetForm(){editingId=null;$('fName').value=$('fDose').value=$('fNotes').value='';$('tbuilder').innerHTML='';addTimeRow('08:00');selEmoji='💊';selColor=COLORS[0].v;buildEmojiGrid();buildColorGrid();$('ftitle').innerHTML='Add <span>New Medicine</span>';}
+$('btnAt').addEventListener('click',()=>addTimeRow());
+$('btnCancel').addEventListener('click',()=>{editingId=null;goTab('dashboard');});
+$('btnSave').addEventListener('click',async()=>{
+  const name=$('fName').value.trim(),dosage=$('fDose').value.trim(),notes=$('fNotes').value.trim();
+  const times=[...$('tbuilder').querySelectorAll('input[type=time]')].map(i=>i.value).filter(Boolean);
+  if(!name)return toast('⚠️','Required','Enter medicine name.','warn');
+  if(!dosage)return toast('⚠️','Required','Enter dosage.','warn');
+  if(!times.length)return toast('⚠️','Required','Add at least one time.','warn');
+  const payload={name,dosage,notes,times,emoji:selEmoji,color:selColor};
+  const btn=$('btnSave');btn.disabled=true;btn.innerHTML='<span class="spin-s"></span>Saving…';
   let res;
-  if (editingId) {
-    res = await apiFetch(`/medicines/${editingId}`, {method:'PUT', body:JSON.stringify(payload)});
-  } else {
-    res = await apiFetch('/medicines', {method:'POST', body:JSON.stringify(payload)});
-  }
-
-  btn.disabled  = false;
-  btn.innerHTML = '💾 Save Medicine';
-
-  if (res.success) {
-    toast(selEmoji, editingId ? 'Updated!' : 'Medicine added!',
-      editingId ? `${name} has been updated.`
-                : `Reminders set for ${times.map(fmt12).join(', ')}.`,
-      'success');
-    editingId = null;
-    resetForm();
-    await loadDashboard();
-    goTab('dashboard');
-  } else {
-    toast('❌','Save failed', res.error || 'Could not save. Check the server is running.', 'error');
-  }
+  if(editingId)res=await apiFetch(`/medicines/${editingId}`,{method:'PUT',body:JSON.stringify(payload)});
+  else res=await apiFetch('/medicines',{method:'POST',body:JSON.stringify(payload)});
+  btn.disabled=false;btn.innerHTML='💾 Save Medicine';
+  if(res.success){toast(selEmoji,editingId?'Updated!':'Medicine added!',editingId?`${name} updated.`:`Reminders set for ${times.map(fmt12).join(', ')}.`,'ok');editingId=null;resetForm();await loadDashboard();goTab('dashboard');}
+  else toast('❌','Error',res.error||'Could not save.','err');
 });
 
-// ── HISTORY ───────────────────────────────────────────────────────
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    histFilter = btn.dataset.filter;
-    loadHistory();
-  });
-});
-
-async function loadHistory() {
-  let qp = '';
-  if (histFilter === 'today')  qp = `?date=${todayISO()}`;
-  else if (histFilter !== 'all') qp = `?status=${histFilter}`;
-
-  const res     = await apiFetch('/history' + qp);
-  const entries = res.data || [];
-
-  $('histBadge').textContent = entries.length + ' record' + (entries.length !== 1 ? 's' : '');
-  const list = $('histList');
-
-  if (!entries.length) {
-    list.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">📜</div>
-      <div class="empty-title">No records found</div>
-      <div class="empty-sub">Take a dose to see your history here.</div>
-    </div>`;
-    return;
-  }
-
-  list.innerHTML = entries.map(e => {
-    const d = new Date(e.takenAt);
-    const dateStr = d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
-    const timeStr = d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
-    return `<div class="hist-item ${e.status}-rec">
-      <span style="font-size:22px">${esc(e.emoji||'💊')}</span>
-      <div class="hist-info">
-        <div class="hist-name">${esc(e.medicineName)}</div>
-        <div class="hist-detail">${esc(e.dose)} · Scheduled ${fmt12(e.scheduledTime)}</div>
-      </div>
-      <span class="hist-badge ${e.status}">${e.status==='taken'?'✅ Taken':'❌ Missed'}</span>
-      <div class="hist-time">${dateStr}<br>${timeStr}</div>
-    </div>`;
-  }).join('');
+document.querySelectorAll('.fbtn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');histFilter=btn.dataset.f;loadHistory();}));
+async function loadHistory(){
+  let qp='';
+  if(histFilter==='today')qp=`?date=${todayISO()}`;
+  else if(histFilter!=='all')qp=`?status=${histFilter}`;
+  const res=await apiFetch('/history'+qp);const entries=res.data||[];
+  $('hBadge').textContent=entries.length+' record'+(entries.length!==1?'s':'');
+  const list=$('hlist');
+  if(!entries.length){list.innerHTML=`<div class="empty"><div class="empty-ico">📜</div><div class="empty-title">No records</div><div class="empty-sub">Take a dose to see history here.</div></div>`;return;}
+  list.innerHTML=entries.map(e=>{const d=new Date(e.takenAt);return`<div class="hitem ${e.status}-rec"><span style="font-size:22px">${esc(e.emoji||'💊')}</span><div class="hinfo"><div class="hname">${esc(e.medicineName)}</div><div class="hdetail">${esc(e.dose)} · Scheduled ${fmt12(e.scheduledTime)}</div></div><span class="hbadge ${e.status}">${e.status==='taken'?'✅ Taken':'❌ Missed'}</span><div class="htime">${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}<br>${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})}</div></div>`;}).join('');
 }
 
-// ── Alarm checker (every 30 s) ────────────────────────────────────
-function checkAlarms() {
-  const now = new Date();
-  const hh  = String(now.getHours()).padStart(2,'0');
-  const mm  = String(now.getMinutes()).padStart(2,'0');
-  const cur = `${hh}:${mm}`;
+function checkAlarms(){const n=new Date(),hh=String(n.getHours()).padStart(2,'0'),mm=String(n.getMinutes()).padStart(2,'0'),cur=`${hh}:${mm}`;medicines.forEach(med=>med.times.forEach(t=>{if(t===cur&&!(takenToday[med.id]||[]).includes(t)){toast(med.emoji,'⏰ Medicine time!',`${med.name} — ${med.dosage}`,'warn');if(Notification.permission==='granted')new Notification(`⏰ Time for ${med.name}`,{body:`Take ${med.dosage} now.`,requireInteraction:true});beep();}}));}
+function beep(){try{const ctx=new AudioContext();[0,200,400].forEach(d=>setTimeout(()=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.setValueAtTime(.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.3);o.start();o.stop(ctx.currentTime+.3);},d));}catch(_){}}
+setInterval(checkAlarms,30_000);
 
-  medicines.forEach(med => {
-    med.times.forEach(t => {
-      if (t === cur && !(takenToday[med.id]||[]).includes(t)) {
-        toast(med.emoji, '⏰ Medicine time!', `${med.name} — ${med.dosage}`, 'warn');
-        pushNotif(`⏰ Time for ${med.name}`, `Take your ${med.dosage} now.`);
-        beep();
-      }
-    });
-  });
-}
-function beep() {
-  try {
-    const ctx = new AudioContext();
-    [0, 200, 400].forEach(d => setTimeout(() => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.frequency.value = 880;
-      g.gain.setValueAtTime(0.3, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.3);
-      o.start(); o.stop(ctx.currentTime+0.3);
-    }, d));
-  } catch(_) {}
-}
-setInterval(checkAlarms, 30_000);
-
-// ── Boot ──────────────────────────────────────────────────────────
-updateNotifBanner();
-resetForm();
 loadDashboard();
 </script>
 </body>
